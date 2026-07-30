@@ -1,7 +1,8 @@
+/**
+ * 
+*/
 #ifndef GENESIS_MATH_H
 # define GENESIS_MATH_H
-
-// Header
 
 # pragma once
 

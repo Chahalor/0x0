@@ -1,7 +1,8 @@
+/**
+ * 
+*/
 #ifndef GENESIS_RANDOM_H
 # define GENESIS_RANDOM_H
-
-// Header
 
 # pragma once
 

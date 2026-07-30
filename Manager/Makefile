@@ -23,7 +23,6 @@ CPPFLAGS := \
 	-I$(GENESIS_ROOT)/files \
 	-I$(GENESIS_ROOT)/interface \
 	-I$(GENESIS_ROOT)/memory \
-	-I$(GENESIS_ROOT)/network \
 	-I$(GENESIS_ROOT)/random \
 	-I$(GENESIS_ROOT)/times
 

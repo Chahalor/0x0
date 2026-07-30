@@ -1,7 +1,8 @@
-#ifndef GENESIS_INTERFACE_IO_INTERNAL_IO_H
-# define GENESIS_INTERFACE_IO_INTERNAL_IO_H
-
-// Header
+/**
+ * 
+*/
+#ifndef GENESIS_LIB_H
+# define GENESIS_LIB_H
 
 # pragma once
 
@@ -13,11 +14,16 @@
 	//...
 
 /* -----| Globals   |----- */
-# include "config.h"
-# include "standards.h"
+# include "standards/lib_config.h"
+# include "standards/lib_standards.h"
 
 /* -----| Internals |----- */
-# include "_types.h"
+# include "interface.h"
+# include "math.h"
+# include "memory.h"
+# include "random.h"
+# include "times.h"
+# include "files.h"
 
 /* -----| Modules   |----- */
 	//...
@@ -30,11 +36,6 @@
 /* ************************************************************************** */
 /*                                 Prototypes                                 */
 /* ************************************************************************** */
+	//...
 
-int		_file_manager(
-			const int access,
-			void *_output,
-			...
-			);
-
-#endif	// GENESIS_INTERFACE_IO_INTERNAL_IO_H
+#endif	// GENESIS_LIB_H

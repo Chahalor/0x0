@@ -5,7 +5,7 @@ RM              ?= rm -f
 CFLAGS          ?= -Wall -Wextra -Werror -std=gnu11 -g3
 CPPFLAGS        ?=
 BUILD_DIR       := build
-MODULES         := _internal_ standards files interface math memory network processor random times types
+MODULES         := _internal_ standards files interface math memory processor random times types
 TARGET          := $(BUILD_DIR)/lib$(NAME).a
 
 .DEFAULT_GOAL := all

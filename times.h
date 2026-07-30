@@ -1,7 +1,8 @@
+/**
+ * 
+*/
 #ifndef GENESIS_TIMES_H
 # define GENESIS_TIMES_H
-
-// Header
 
 # pragma once
 
@@ -34,6 +35,25 @@
 /* ************************************************************************** */
 /*                                 Prototypes                                 */
 /* ************************************************************************** */
-	//...
+
+/**
+ * @brief				convert `src` from one time unit to an other
+ * 
+ * @param	src			the base value to be converted
+ * @param	base_src	the base unit of src
+ * @param	dest_src	the unit to be converted in
+ * 
+ * @return				the converted value
+ * 
+ * @pre					base_src and base_dest should be from the enum `e_time_unity`
+ * 
+ * @ingroup times
+ * @version	1.0.0
+ */
+time_t	time_convert(
+			const time_t	_src,
+			const __u_char	_base_src,
+			const __u_char	_base_dest
+			);
 
 #endif	// GENESIS_TIMES_H

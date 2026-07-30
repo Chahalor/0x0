@@ -30,7 +30,6 @@ static void	random_init_seed(void)
 
 /* ----| Public     |----- */
 
-// __attribute__(())
 int	randint(
 	const int _val1,
 	const int _val2

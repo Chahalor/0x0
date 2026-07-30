@@ -1,90 +1,44 @@
-# Lib manager
+# 0x0 module manager
 
-## Goal:
-Only copy the sources files for the needed modules of the lib and they dependencies
+The Manager creates a self-contained 0x0 source export containing only the
+requested modules and their declared dependencies.
 
----
-exemples:
+## Build
+
 ```bash
-> ls
-build           files.h      lib.h    memory     processor  review.md  times.h
-check.sh        interface    Manager  memory.h   random     standards  TODO.md
-Makefile  interface.h  math     network    random.h   tests
-files           _internal_   math.h   network.h  README.md  times
+make -C Manager
 ```
 
-if i only want the memory and the json module, only thos two modules will be copyed.
-If i would only want the json module all of it dependencies would also be copied (like the memory one).
+## Setup an export
 
-## usage
-
-### CLI
-libmng setup/update/export
-
-- init:		init the lib in the current session
-- setup:	setup the requested modules in the targeted dir
-- update	update the locals modules by updating the sources files and and importing new dependencies.
-- list:		list all the available modules and the current version of tghe lib register in cache
-- help:		same has --help/-h
-
-### Files
-
-#### export
-this file will say which module exist, where are they situated and which are they dependencies.
-
-format
-```toml
-name = "name"
-version = "version"
-url = "url to the repo"
-
-[export]
-includeDir = "include"
-sourceDir = "src"
-buildSystem = "make"
-
-[[moduleName]]
-path = "path/to/the/module"
-publicHeaders = "header.h"
-privateHeaders = "_internal_/_header.h"
-dependencies = []
-defines = [
-	"MEMORY_DEBUG"
-]
-tags = [
-	"core",
-	"allocator"
-]
-controls = [
-	"path/to/the/controls/"
-]
+```bash
+modulesmng \
+  --output ./vendor/0x0 \
+  --cache-dir ~/.cache/genesis \
+  setup files
 ```
 
-exemple:
-```toml
-[[json]]
-path = "files/json/"
-publicHeaders = [
-	"../json.h"
-]
-privateHeaders = [
-	"_internal_/_json.h"
-]
+The destination receives:
 
-dependencies = [
-	"memory"
-]
+- `genesis.h`, containing the selected public module headers;
+- `GENESIS.toml`, containing metadata only for the resolved module set;
+- a root `Makefile` producing `build/libgenesis.a`;
+- shared build rules under `mk/`;
+- one regenerated `makefile` per selected main module and submodule.
+
+Nested modules are assembled from the resolved hierarchy. Unselected sibling
+modules are not copied. The Manager validates all selected source directories
+and public headers before writing the export, so an incomplete cache fails
+without leaving a partial source tree.
+
+Build a generated export with:
+
+```bash
+make -C ./vendor/0x0
 ```
 
-#### import
-```toml
-modules = [
-	module1,
-	module2,
-	module3,
-	module4
-]
+## Metadata
 
-[[moduleName]]
-version=version
-```
+The cache manifest is `GENESIS.toml`. Each module table defines its path,
+public/private headers, dependencies, tags, defines, and controls. Dependencies
+must include every module required by the implementation or public headers.

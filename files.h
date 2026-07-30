@@ -1,7 +1,8 @@
+/**
+ * 
+*/
 #ifndef GENESIS_FILES_H
 # define GENESIS_FILES_H
-
-// Header
 
 # pragma once
 
@@ -20,8 +21,6 @@
 	//...
 
 /* -----| Modules   |----- */
-// #include "files/csv.h"
-// #include "files/yml.h"
 #include "files/json.h"
 #include "files/toml.h"
 

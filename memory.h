@@ -1,6 +1,3 @@
-#ifndef GENESIS_MEMORY_H
-# define GENESIS_MEMORY_H
-
 /**
  * @file memory.h
  * @brief API public to the memory manager
@@ -9,6 +6,8 @@
  *
  * @ingroup memory
  */
+#ifndef GENESIS_MEMORY_H
+# define GENESIS_MEMORY_H
 
 # pragma once
 

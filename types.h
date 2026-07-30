@@ -26,43 +26,14 @@
 /*                                 Macros                                     */
 /* ************************************************************************** */
 
-// #define	ARRAY_ACCESS(type, array, index)									\
-// 	__builtin_choose_expr(													\
-// 		IS_TYPE(typeof(array), t_array),									\
-// 		(*(type *)((char *)(array).data + (array).elt_size * (index))),		\
-// 		(*(type *)((char *)(array)->data + (array)->elt_size * (index)))	\
-// 	)
-
 #define hash_map_foreach (var, map) \
-for (uint __i = 0; __i < HASH_MAP_BUCKET_SIZE; __i++)	\
-// {													\
-// 	struct s_hash_map_entry	*__this = &map->map[__i];	\
-// 	if (!__this->)
-// }
+for (uint __i = 0; __i < HASH_MAP_BUCKET_SIZE; __i++)
 
 /* ************************************************************************** */
 /*                                 Prototypes                                 */
 /* ************************************************************************** */
 
 #pragma region Array
-// int	array_alloc(
-// 	t_array *const	array,
-// 	const size_t	capacity
-// );
-
-// void	array_free(
-// 	t_array *const	array
-// );
-
-// int		array_append(
-// 	t_array *const	array,
-// 	void *const		data
-// );
-
-// void	array_pop(
-// 	t_array *const	array,
-// 	const bool		free
-// );
 
 #pragma region Hash Map
 

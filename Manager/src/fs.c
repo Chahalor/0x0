@@ -208,7 +208,7 @@ static int	copy_optional_file(
 	return (copy_file(src, dest));
 }
 
-static int	write_lib_header(
+static int	write_genesis_header(
 	const Config *const	config,
 	const t_array *const	modules
 )
@@ -216,7 +216,7 @@ static int	write_lib_header(
 	char	path[PATH_MAX];
 	FILE	*file;
 
-	if (unlikely(snprintf(path, sizeof(path), "%s/lib.h", config->dest) >= (int)sizeof(path)))
+	if (unlikely(snprintf(path, sizeof(path), "%s/genesis.h", config->dest) >= (int)sizeof(path)))
 		return (-ENAMETOOLONG);
 
 	file = fopen(path, "w");
@@ -224,8 +224,8 @@ static int	write_lib_header(
 		return (-errno);
 
 	fprintf(file,
-		"#ifndef LIB_H\n"
-		"# define LIB_H\n"
+		"#ifndef GENESIS_H\n"
+		"# define GENESIS_H\n"
 		"\n"
 		"# pragma once\n"
 		"\n"
@@ -241,7 +241,7 @@ static int	write_lib_header(
 
 	fprintf(file,
 		"\n"
-		"#endif\t// LIB_H\n"
+		"#endif\t// GENESIS_H\n"
 	);
 	fclose(file);
 	return (error_none);
@@ -528,6 +528,147 @@ error:
 	return (result);
 }
 
+static int	validate_modules(
+	const Config *const	config,
+	const t_array *const	modules
+)
+{
+	char		path[PATH_MAX];
+	struct stat	st;
+
+	for (size_t i = 0; i < modules->length; ++i)
+	{
+		const t_module *const	module = modules->data[i];
+
+		if (unlikely(!module || !module->path || !*module->path))
+			return (-EINVAL);
+		if (snprintf(path, sizeof(path), "%s/%s",
+			config->consts.path_cache_dir, module->path) >= (int)sizeof(path))
+			return (-ENAMETOOLONG);
+		if (stat(path, &st) < 0)
+		{
+			fprintf(stderr, "module source is missing: %s\n", path);
+			return (-errno);
+		}
+		if (unlikely(!S_ISDIR(st.st_mode)))
+			return (-ENOTDIR);
+		if (!module->public_header || !*module->public_header)
+			continue ;
+		if (snprintf(path, sizeof(path), "%s/%s",
+			config->consts.path_cache_dir, module->public_header)
+			>= (int)sizeof(path))
+			return (-ENAMETOOLONG);
+		if (stat(path, &st) < 0)
+		{
+			fprintf(stderr, "module public header is missing: %s\n", path);
+			return (-errno);
+		}
+		if (unlikely(!S_ISREG(st.st_mode)))
+			return (-EINVAL);
+	}
+	return (error_none);
+}
+
+static int	directory_is_module(
+	const char *const	path
+)
+{
+	char		makefile[PATH_MAX];
+	struct stat	st;
+
+	if (snprintf(makefile, sizeof(makefile), "%s/makefile", path)
+		< (int)sizeof(makefile) && !stat(makefile, &st) && S_ISREG(st.st_mode))
+		return (true);
+	if (snprintf(makefile, sizeof(makefile), "%s/Makefile", path)
+		< (int)sizeof(makefile) && !stat(makefile, &st) && S_ISREG(st.st_mode))
+		return (true);
+	return (false);
+}
+
+static int	copy_module_tree(
+	const char *const	src,
+	const char *const	dst,
+	const int		is_root
+)
+{
+	DIR			*dir;
+	struct dirent	*entry;
+	struct stat	st;
+	char			src_path[PATH_MAX];
+	char			dst_path[PATH_MAX];
+	int			err;
+
+	dir = opendir(src);
+	if (!dir)
+		return (-errno);
+	if (lstat(src, &st) < 0)
+	{
+		err = -errno;
+		closedir(dir);
+		return (err);
+	}
+	err = mkdir_p(dst, st.st_mode & 0777);
+	if (err < 0)
+	{
+		closedir(dir);
+		return (err);
+	}
+	while ((entry = readdir(dir)))
+	{
+		if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, ".."))
+			continue ;
+		if (snprintf(src_path, sizeof(src_path), "%s/%s", src, entry->d_name)
+			>= (int)sizeof(src_path)
+			|| snprintf(dst_path, sizeof(dst_path), "%s/%s", dst, entry->d_name)
+			>= (int)sizeof(dst_path))
+		{
+			closedir(dir);
+			return (-ENAMETOOLONG);
+		}
+		if (lstat(src_path, &st) < 0)
+		{
+			err = -errno;
+			closedir(dir);
+			return (err);
+		}
+		if (S_ISDIR(st.st_mode))
+		{
+			if (is_root && directory_is_module(src_path))
+				continue ;
+			err = copy_module_tree(src_path, dst_path, false);
+		}
+		else if (S_ISREG(st.st_mode))
+			err = copy_file(src_path, dst_path);
+		else if (S_ISLNK(st.st_mode))
+		{
+			char link_target[PATH_MAX];
+			ssize_t len;
+
+			len = readlink(src_path, link_target, sizeof(link_target) - 1);
+			if (len < 0)
+				err = -errno;
+			else
+			{
+				link_target[len] = '\0';
+				err = symlink(link_target, dst_path);
+				if (err < 0 && errno == EEXIST)
+					err = error_none;
+				else if (err < 0)
+					err = -errno;
+			}
+		}
+		else
+			err = error_none;
+		if (err < 0)
+		{
+			closedir(dir);
+			return (err);
+		}
+	}
+	closedir(dir);
+	return (error_none);
+}
+
 int	copy_modules(
 	const Config *const	config,
 	const t_array *const	modules
@@ -538,6 +679,10 @@ int	copy_modules(
 	struct stat	st;
 	int		err = 0;
 
+	err = validate_modules(config, modules);
+	if (unlikely(err))
+		return (err);
+
 	for (size_t i = 0; i < modules->length; i++)
 	{
 		t_module *const	module = modules->data[i];
@@ -547,7 +692,7 @@ int	copy_modules(
 
 		if (!stat(src, &st) && S_ISDIR(st.st_mode))
 		{
-			err = copy_dir(src, dest);
+			err = copy_module_tree(src, dest, true);
 			if (unlikely(err))
 			{
 				perror("copy dir");
@@ -565,7 +710,7 @@ int	copy_modules(
 		}
 	}
 
-	return (write_lib_header(config, modules));
+	return (write_genesis_header(config, modules));
 }
 
 int	count_dir_files(

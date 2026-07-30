@@ -53,8 +53,7 @@ time_t	time_convert(
 {
 	time_t	result = 0;
 
-	if (unlikely(_base_src >= time_unity_day + 1
-		|| _base_dest >= time_unity_day + 1))
+	if (unlikely(_base_src >= time_unity_day + 1 || _base_dest >= time_unity_day + 1))
 		return (0);
 
 	result = _src * _g_time_to_ns[_base_src];

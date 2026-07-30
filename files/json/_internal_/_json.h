@@ -23,7 +23,7 @@
 # include "edit/_json_edit.h"
 
 /* -----| Modules   |----- */
-#include "../../../lib.h"
+# include "../../../genesis.h"
 
 /* ************************************************************************** */
 /*                                 Macros                                     */
@@ -33,7 +33,6 @@
 	for (t_json *(var) = ((t_json *)array_node ? ((t_json *)(array_node))->child : NULL);	\
 		(var) != NULL;																		\
 			(var) = (var)->next)
-
 
 /* ************************************************************************** */
 /*                                 Prototypes                                 */

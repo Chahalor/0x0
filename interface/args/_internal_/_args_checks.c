@@ -70,8 +70,8 @@ static inline int	_check_options(
 				continue ;
 			else if (!strncmp(_name2, "--", 2))
 				_name2 = _name2 + 2;
-			else if (unlikely((_name2 && !strcmp(_name2, _name1) ||
-				_opt->short_name == _this->short_name && _opt->short_name != '\0')
+			else if (unlikely(((_name2 && !strcmp(_name2, _name1)) ||
+				(_opt->short_name == _this->short_name && _opt->short_name != '\0'))
 			))
 				result = args_error_duplicate;
 		}
@@ -111,7 +111,7 @@ static inline int	_check_params(
 	return (result);
 }
 
-static int	_check_parser(
+static int __attribute__((unused))	_check_parser(
 	const _t_args_parser *const parser
 )
 {
@@ -431,7 +431,6 @@ int	_args_check_output(
 	else
 		result = _check_output_parser(_root->parser, _output->root);
 
-error:
 	return (result);
 }
 

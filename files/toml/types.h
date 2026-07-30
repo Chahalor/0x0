@@ -7,8 +7,8 @@
  * node layout is intentionally kept outside this file; callers should prefer
  * the functions in `files/toml.h` for allocation, lookup, mutation, and output.
 */
-#ifndef CLIB_FILES_TOML_TYPES_H
-# define CLIB_FILES_TOML_TYPES_H
+#ifndef GENESIS_FILES_TOML_TYPES_H
+# define GENESIS_FILES_TOML_TYPES_H
 
 # pragma once
 
@@ -85,7 +85,7 @@ typedef struct s_toml	TOML;
  * @code
  * TOML *doc = toml_new();
  * toml_set_wild(doc, "enabled", &(int){1}, toml_bool);
- * toml_set_wild(doc, "name", "clib", toml_str);
+ * toml_set_wild(doc, "name", "genesis", toml_str);
  * toml_assert_type((TOML *)toml_get(doc, "items"), toml_array);
  * @endcode
  */
@@ -221,4 +221,4 @@ enum e_toml_errors
 /* ************************************************************************** */
 
 
-#endif	// CLIB_FILES_TOML_TYPES_H
+#endif	// GENESIS_FILES_TOML_TYPES_H

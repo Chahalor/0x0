@@ -1,3 +1,6 @@
+#ifndef GENESIS_FILES_JSON_INTERNAL_JSON_H
+# define GENESIS_FILES_JSON_INTERNAL_JSON_H
+
 // Header
 
 # pragma once
@@ -309,3 +312,5 @@ void	print_json_tree(
 			t_json *node,
 			int depth
 			);
+
+#endif	// GENESIS_FILES_JSON_INTERNAL_JSON_H

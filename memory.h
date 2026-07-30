@@ -1,3 +1,6 @@
+#ifndef GENESIS_MEMORY_H
+# define GENESIS_MEMORY_H
+
 /**
  * @file memory.h
  * @brief API public to the memory manager
@@ -129,3 +132,5 @@ void	*mem_join(
  * @version	1.0.0
 */
 void	mem_free_all(void);
+
+#endif	// GENESIS_MEMORY_H

@@ -1,3 +1,6 @@
+#ifndef GENESIS_NETWORK_COMMUNICATION_INTERNAL_IO_IO_H
+# define GENESIS_NETWORK_COMMUNICATION_INTERNAL_IO_IO_H
+
 // Header
 
 # pragma once
@@ -59,3 +62,5 @@ ssize_t	_net_recv(
 void	_net_close(
 			t_net_conn *const restrict _conn
 			);
+
+#endif	// GENESIS_NETWORK_COMMUNICATION_INTERNAL_IO_IO_H

@@ -2,8 +2,8 @@
  * 
 */
 
-#ifndef LIB_NET_PROTOCOLS_HTTP_CODE_H
-# define LIB_NET_PROTOCOLS_HTTP_CODE_H
+#ifndef GENESIS_NETWORK_PROTOCOLS_HTTP_CODES_H
+# define GENESIS_NETWORK_PROTOCOLS_HTTP_CODES_H
 
 /**
  * @enum http_codes
@@ -85,8 +85,8 @@ enum e_http_codes
 };
 
 /** */
-inline const char	*net_prot_http_code_to_str(
+const char	*net_prot_http_code_to_str(
 	const enum e_http_codes code
 );
 
-#endif	// LIB_NET_PROTOCOLS_HTTP_CODE_H
+#endif	// GENESIS_NETWORK_PROTOCOLS_HTTP_CODES_H

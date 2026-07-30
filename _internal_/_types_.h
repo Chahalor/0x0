@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERNAL_TYPES_H
+# define GENESIS_INTERNAL_TYPES_H
+
 // Header
 
 # pragma once
@@ -62,3 +65,5 @@ struct _s_string_
 	size_t	len;
 	size_t	capacity;
 };
+
+#endif	// GENESIS_INTERNAL_TYPES_H

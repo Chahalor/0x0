@@ -1,3 +1,6 @@
+#ifndef GENESIS_MANAGER_SRC_MANAGER_H
+# define GENESIS_MANAGER_SRC_MANAGER_H
+
 /**
  * 
 */
@@ -36,11 +39,11 @@
 
 #define	ALLOC_SIZE			256
 
-#define	DEFAULT_CONFIG_DIR		"clib"
+#define	DEFAULT_CONFIG_DIR		"genesis"
 #define	DEFAULT_CONFIG_FILE		"config.toml"
-#define	DEFAULT_CACHE_DIR		"clib"
-#define	DEFAULT_MODULES_FILE	"Clib.toml"
-#define	DEFAULT_URL_GIT			"git@github.com:Chahalor/Clib.git"
+#define	DEFAULT_CACHE_DIR		"genesis"
+#define	DEFAULT_MODULES_FILE	"GENESIS.toml"
+#define	DEFAULT_URL_GIT			"git@github.com:Chahalor/0x0.git"
 
 /* ************************************************************************** */
 /*                                 Prototypes                                 */
@@ -131,7 +134,7 @@ int	list(
 );
 
 /** */
-int	cmake_write(
+int	make_write(
 	const Config *const	config,
 	const t_array *const	modules
 );
@@ -159,3 +162,5 @@ int	init_cache(
 int	init_all(
 	Config *const config
 );
+
+#endif	// GENESIS_MANAGER_SRC_MANAGER_H

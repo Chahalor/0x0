@@ -41,14 +41,12 @@ int	_json_unset(
 	int			_nb_fields = 0;
 	t_json		*_target = NULL;
 	t_json		*_prev = NULL;
-	int			result = error_none;
 
 	if (_args)
 	{
 		_field_buf = _json_unset_va(_args, _field);
 		if (unlikely(!_field_buf))
 		{
-			result = error_alloc_fail;
 			goto cleannup;
 		}
 		_field = _field_buf;
@@ -60,7 +58,6 @@ int	_json_unset(
 
 	if (!_target)
 	{
-		result = error_none;
 		goto cleannup;
 	}
 	else

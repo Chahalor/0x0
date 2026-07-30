@@ -225,7 +225,7 @@ static int	_list_modules(
 		return (err);
 	}
 
-	printf("Clib: Module%s available%s: %u\n", s, s, config->lib.modules.length);
+	printf("GENESIS: Module%s available%s: %u\n", s, s, config->lib.modules.length);
 	if (config->sub.list.options.stats)
 		printf("%-*s %-*s %*s %*s\n", display.max_name, "Module", display.max_deps, "Deps", display.max_files, "Files", display.max_size, "Size");
 

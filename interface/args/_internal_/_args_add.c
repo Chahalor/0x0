@@ -53,7 +53,6 @@ t_args_parser	*_args_parser_add_sub(
 	const char *const _desc
 )
 {
-	t_args_parser	*_last = NULL;
 	t_args_parser	*new = NULL;
 
 	new = _args_mem_new_parser(_name, _desc);

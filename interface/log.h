@@ -10,8 +10,8 @@
  * @date	30/03/2026
  */
 
-#ifndef LIB_INTERFACE_LOG_H
-# define LIB_INTERFACE_LOG_H
+#ifndef GENESIS_INTERFACE_LOG_H
+# define GENESIS_INTERFACE_LOG_H
 
 # pragma once
 
@@ -296,4 +296,4 @@ static inline int	_logs_perror_report_adapter(
 	return (logs_perror_report(report));
 }
 
-#endif	// LIB_INTERFACE_LOG_H
+#endif	// GENESIS_INTERFACE_LOG_H

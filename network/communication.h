@@ -2,8 +2,8 @@
  * 
 */
 
-#ifndef LIB_NET_COMM_H
-# define LIB_NET_COMM_H
+#ifndef GENESIS_NETWORK_COMMUNICATION_H
+# define GENESIS_NETWORK_COMMUNICATION_H
 
 # pragma once
 
@@ -73,4 +73,4 @@ void	net_close(
 			);
 
 
-#endif // LIB_NET_COMM_H
+#endif // GENESIS_NETWORK_COMMUNICATION_H

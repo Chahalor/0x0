@@ -19,8 +19,8 @@
  * @{
  */
 
-#ifndef INTERFACE_ARGS_H
-# define INTERFACE_ARGS_H
+#ifndef GENESIS_INTERFACE_ARGS_H
+# define GENESIS_INTERFACE_ARGS_H
 
 # pragma once
 
@@ -509,5 +509,5 @@ const char	*args_error_str(
 	int err
 );
 
-#endif	// INTERFACE_ARGS_H
+#endif	// GENESIS_INTERFACE_ARGS_H
 /** @} */

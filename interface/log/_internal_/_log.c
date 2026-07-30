@@ -79,7 +79,7 @@ int	_logs(
 )
 {
 	int		_fd_file = _log_config(NULL)->fd[report->level];
-	int		_fd_tty = _log_config(NULL)->display_limit > report->level ? -1 : STDERR_FILENO;
+	int		_fd_tty = _log_config(NULL)->display_limit > (int)report->level ? -1 : STDERR_FILENO;
 	int		result = error_none;
 	char	*backup = NULL;
 

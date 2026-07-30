@@ -1,3 +1,6 @@
+#ifndef GENESIS_FILES_JSON_INTERNAL_EDIT_JSON_EDIT_H
+# define GENESIS_FILES_JSON_INTERNAL_EDIT_JSON_EDIT_H
+
 // Header
 
 # pragma once
@@ -184,3 +187,5 @@ int	_json_set_array_va_args(
 		const int _type,
 		...
 		);
+
+#endif	// GENESIS_FILES_JSON_INTERNAL_EDIT_JSON_EDIT_H

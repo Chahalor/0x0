@@ -1,3 +1,6 @@
+#ifndef GENESIS_MANAGER_SRC_TYPES_H
+# define GENESIS_MANAGER_SRC_TYPES_H
+
 /**
  * 
 */
@@ -149,3 +152,5 @@ struct s_config
 	char				**allowed;
 	uint32_t			nb_allowed;
 };
+
+#endif	// GENESIS_MANAGER_SRC_TYPES_H

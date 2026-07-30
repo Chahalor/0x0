@@ -9,8 +9,8 @@
  * @date	30/03/2026
  */
 
-#ifndef LIB_INTERFACE_LOG_TYPES_H
-# define LIB_INTERFACE_LOG_TYPES_H
+#ifndef GENESIS_INTERFACE_LOG_TYPES_H
+# define GENESIS_INTERFACE_LOG_TYPES_H
 
 # pragma once
 
@@ -158,4 +158,4 @@ struct s_log_report
 	int					code;		/**< Application/system code displayed in summary. */
 };
 
-#endif	// LIB_INTERFACE_LOG_TYPES_H
+#endif	// GENESIS_INTERFACE_LOG_TYPES_H

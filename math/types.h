@@ -1,3 +1,6 @@
+#ifndef GENESIS_MATH_TYPES_H
+# define GENESIS_MATH_TYPES_H
+
 // Header
 
 # pragma once
@@ -37,3 +40,5 @@
 /*                                 Structs                                    */
 /* ************************************************************************** */
 	//...
+
+#endif	// GENESIS_MATH_TYPES_H

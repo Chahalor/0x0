@@ -122,7 +122,7 @@ ssize_t	_net_send(
 	t_net_conn *const restrict _p
 )
 {
-	unsigned int	_sent = 0;
+	ssize_t		_sent = 0;
 	ssize_t			result = 0;
 
 	while (result < _p->out_len)

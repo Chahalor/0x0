@@ -630,6 +630,5 @@ _t_args_output	*_args_parse(
 
 	result->error = _errnum;
 
-error:
 	return (result);
 }

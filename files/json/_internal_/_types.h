@@ -1,3 +1,6 @@
+#ifndef GENESIS_FILES_JSON_INTERNAL_TYPES_H
+# define GENESIS_FILES_JSON_INTERNAL_TYPES_H
+
 // Header
 
 # pragma once
@@ -81,3 +84,5 @@ struct s_json
 	t_json	*child;		// first child (objet or array)
 	t_json	*next;		// next element of the same parent
 };
+
+#endif	// GENESIS_FILES_JSON_INTERNAL_TYPES_H

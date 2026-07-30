@@ -1,3 +1,6 @@
+#ifndef GENESIS_FILES_JSON_TYPES_H
+# define GENESIS_FILES_JSON_TYPES_H
+
 // Header
 
 # pragma once
@@ -58,3 +61,5 @@ enum e_json_error
 /*                                 Structs                                    */
 /* ************************************************************************** */
 	//...
+
+#endif	// GENESIS_FILES_JSON_TYPES_H

@@ -1,3 +1,6 @@
+#ifndef GENESIS_FILES_TOML_SETTING_H
+# define GENESIS_FILES_TOML_SETTING_H
+
 // Header
 
 # pragma once
@@ -69,3 +72,5 @@ struct s_toml_settings
 /* ************************************************************************** */
 
 extern t_toml_settings	g_toml_settings;
+
+#endif	// GENESIS_FILES_TOML_SETTING_H

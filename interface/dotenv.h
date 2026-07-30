@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_DOTENV_H
+# define GENESIS_INTERFACE_DOTENV_H
+
 // Header
 
 # pragma once
@@ -39,3 +42,5 @@ int	dotenv_load(void);
 int	dotenv_load_file(
 	const char *const _path
 );
+
+#endif	// GENESIS_INTERFACE_DOTENV_H

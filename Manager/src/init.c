@@ -181,7 +181,7 @@ static int	_write_config(
 		return (toml_errno());
 	}
 
-	toml_set(config_file, "name", "clib");
+	toml_set(config_file, "name", "0x0 - Genesis");
 	toml_set(config_file, "version", "%d.%d.%d", config->consts.version.major, config->consts.version.minor, config->consts.version.patch);
 	toml_set(config_file, "url-remote", config->consts.url_git);
 	toml_set(config_file, "path-cache", config->consts.path_cache_dir);
@@ -280,7 +280,7 @@ int	config_load(
 		{
 			if (errno == ENOENT || toml_errno() == TOML_ERROR_INVALID_FILE || !should_init)
 			{
-				printf("It look like the Clib is not init in this setup\n");
+				printf("It look like the GENESIS is not init in this setup\n");
 				printf("To init, run: `modulesmng init`");
 				return (-ENOENT);
 			}
@@ -504,7 +504,7 @@ int	init_all(
 	int	err = 0;
 
 	if (unlikely((config->cli.verbose)))
-		printf("Initializing clib manager session\n");
+		printf("Initializing genesis manager session\n");
 
 	err = config_load(config, config->consts.path_config_file, true);
 	if (err && err != -ENOENT)

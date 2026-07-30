@@ -1,3 +1,6 @@
+#ifndef GENESIS_FILES_CSV_TYPES_H
+# define GENESIS_FILES_CSV_TYPES_H
+
 // Header
 
 # pragma once
@@ -68,3 +71,5 @@ enum e_lib_csv_errors
 /*                                 Structs                                    */
 /* ************************************************************************** */
 	//...
+
+#endif	// GENESIS_FILES_CSV_TYPES_H

@@ -1,6 +1,6 @@
-name = "clib"
+name = "0x0 - Genesis"
 version = "1.0.0"
-url = "git@github.com:Chahalor/Clib.git"
+url = "git@github.com:Chahalor/0x0.git"
 
 [json]
 path = "files/json"

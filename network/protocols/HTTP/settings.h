@@ -2,8 +2,8 @@
  * 
 */
 
-#ifndef LIB_NET_PROTOCOLS_HTTP_SETTINGS_H
-# define LIB_NET_PROTOCOLS_HTTP_SETTINGS_H
+#ifndef GENESIS_NETWORK_PROTOCOLS_HTTP_SETTINGS_H
+# define GENESIS_NETWORK_PROTOCOLS_HTTP_SETTINGS_H
 
 # pragma once
 
@@ -47,4 +47,4 @@ typedef struct s_http_settings
 
 extern t_http_settings	g_net_prot_http_settings;
 
-#endif	// LIB_NET_PROTOCOLS_HTTP_SETTINGS_H
+#endif	// GENESIS_NETWORK_PROTOCOLS_HTTP_SETTINGS_H

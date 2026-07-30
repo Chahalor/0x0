@@ -2,8 +2,8 @@
  * 
 */
 
-#ifndef LIB_NET_PROTOCOLS_H
-# define LIB_NET_PROTOCOLS_H
+#ifndef GENESIS_NETWORK_PROTOCOLS_H
+# define GENESIS_NETWORK_PROTOCOLS_H
 
 # pragma once
 
@@ -34,4 +34,4 @@
 /* ************************************************************************** */
 	//...
 
-#endif	// LIB_NET_PROTOCOLS_H
+#endif	// GENESIS_NETWORK_PROTOCOLS_H

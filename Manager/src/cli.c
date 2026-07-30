@@ -73,7 +73,6 @@ t_args_parser	*setup_args(void)
 	t_args_parser	*setup;
 	t_args_parser	*update;
 	t_args_parser	*list;
-	t_args_parser	*help;
 
 	result = args_parser_new();
 	if (unlikely(!result))
@@ -115,12 +114,12 @@ t_args_parser	*setup_args(void)
 	args_parser_add_option(list, "deps", 'd', "show the dependencies of each module");
 	args_parser_add_option(list, "version", 'v', "show the version of each modules");
 	args_parser_add_option(list, "stats", 's', "show many stats about each module, like they size, number of file, ...");
-	t_args_option	*opt_list_installed = args_parser_add_option(list, "installed", 'i', "show which module are currently installed in the pwd. By default will check ./clib or ./Clib. By using --installed=<path> it will use this path insted");
+	t_args_option	*opt_list_installed = args_parser_add_option(list, "installed", 'i', "show which module are currently installed in the pwd. By default will check ./genesis or ./GENESIS. By using --installed=<path> it will use this path insted");
 	args_add_param(opt_list_installed, "path", NULL, 0, param_type_file);
 	args_parser_add_option(list, "config", 'c', "show information about the current configuration used and the cache");
 
 	/* Sub-parser help */
-	help = args_parser_add_sub(result, "help", "display the app help");
+	args_parser_add_sub(result, "help", "display the app help");
 
 	return (result);
 }

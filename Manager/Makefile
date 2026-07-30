@@ -1,11 +1,10 @@
 NAME := modulesmng
 
 CC := cc
-CMAKE := cmake
 
-CLIB_ROOT := ..
-CLIB_BUILD := $(CLIB_ROOT)/build
-CLIB_LIB := $(CLIB_BUILD)/libclib.a
+GENESIS_ROOT := ..
+GENESIS_BUILD := $(GENESIS_ROOT)/build
+GENESIS_LIB := $(GENESIS_BUILD)/libgenesis.a
 
 SRC_DIR := src
 OBJ_DIR := build/obj
@@ -18,32 +17,31 @@ DEPS := $(OBJS:.o=.d)
 
 CPPFLAGS := \
 	-I$(SRC_DIR) \
-	-I$(CLIB_ROOT) \
-	-I$(CLIB_ROOT)/_internal_ \
-	-I$(CLIB_ROOT)/standards \
-	-I$(CLIB_ROOT)/files \
-	-I$(CLIB_ROOT)/interface \
-	-I$(CLIB_ROOT)/memory \
-	-I$(CLIB_ROOT)/network \
-	-I$(CLIB_ROOT)/random \
-	-I$(CLIB_ROOT)/times
+	-I$(GENESIS_ROOT) \
+	-I$(GENESIS_ROOT)/_internal_ \
+	-I$(GENESIS_ROOT)/standards \
+	-I$(GENESIS_ROOT)/files \
+	-I$(GENESIS_ROOT)/interface \
+	-I$(GENESIS_ROOT)/memory \
+	-I$(GENESIS_ROOT)/network \
+	-I$(GENESIS_ROOT)/random \
+	-I$(GENESIS_ROOT)/times
 
 CFLAGS := -Wall -Wextra -Werror -g3 -O0 -MMD -MP
 LDFLAGS :=
-LDLIBS := $(CLIB_LIB)
+LDLIBS := $(GENESIS_LIB)
 
-.PHONY: all clib clean fclean re FORCE
+.PHONY: all genesis clean fclean re FORCE
 
 all: $(NAME)
 
-$(NAME): $(OBJS) $(CLIB_LIB)
+$(NAME): $(OBJS) $(GENESIS_LIB)
 	$(CC) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@
 
-clib: $(CLIB_LIB)
+genesis: $(GENESIS_LIB)
 
-$(CLIB_LIB): FORCE
-	$(CMAKE) -S $(CLIB_ROOT) -B $(CLIB_BUILD)
-	$(CMAKE) --build $(CLIB_BUILD)
+$(GENESIS_LIB): FORCE
+	$(MAKE) -C $(GENESIS_ROOT)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)

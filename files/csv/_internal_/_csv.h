@@ -1,3 +1,6 @@
+#ifndef GENESIS_FILES_CSV_INTERNAL_CSV_H
+# define GENESIS_FILES_CSV_INTERNAL_CSV_H
+
 // Header
 
 # pragma once
@@ -32,3 +35,5 @@
 const char	*_csv_strerror(
 				const CSV *_csv
 				);
+
+#endif	// GENESIS_FILES_CSV_INTERNAL_CSV_H

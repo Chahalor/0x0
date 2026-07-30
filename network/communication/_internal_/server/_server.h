@@ -1,3 +1,6 @@
+#ifndef GENESIS_NETWORK_COMMUNICATION_INTERNAL_SERVER_SERVER_H
+# define GENESIS_NETWORK_COMMUNICATION_INTERNAL_SERVER_SERVER_H
+
 // Header
 
 # pragma once
@@ -40,3 +43,5 @@ int	_net_server_accept(
 int	_net_server_close(
 		t_net_conn *const restrict _server
 		);
+
+#endif	// GENESIS_NETWORK_COMMUNICATION_INTERNAL_SERVER_SERVER_H

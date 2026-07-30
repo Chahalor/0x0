@@ -2,8 +2,8 @@
  * @file toml.h
  * @brief Public API for the TOML module.
  */
-#ifndef CLIB_FILES_TOML_H
-# define CLIB_FILES_TOML_H
+#ifndef GENESIS_FILES_TOML_H
+# define GENESIS_FILES_TOML_H
 
 # pragma once
 
@@ -73,7 +73,7 @@
  * @example
  * @code
  * TOML *doc = toml_new();
- * toml_set(doc, "project.name", "clib", toml_str);
+ * toml_set(doc, "project.name", "genesis", toml_str);
  * toml_unload(doc);
  * @endcode
  */
@@ -334,7 +334,7 @@ int	toml_set_unsigned_nb(
  *
  * @example
  * @code
- * toml_set_string(doc, "package.name", "clib");
+ * toml_set_string(doc, "package.name", "genesis");
  * toml_set_string(doc, "package.version", "%d.%d.%d", 1, 2, 0);
  * @endcode
  */
@@ -652,4 +652,4 @@ void		toml_perror(
 void		toml_error_dump(
 				FILE *const file
 				);
-#endif	// CLIB_FILES_TOML_H
+#endif	// GENESIS_FILES_TOML_H

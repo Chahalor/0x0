@@ -1,7 +1,7 @@
 // Header
 
-#ifndef CONFIG_H
-# define CONFIG_H
+#ifndef GENESIS_STANDARDS_LIB_CONFIG_H
+# define GENESIS_STANDARDS_LIB_CONFIG_H
 
 # pragma once
 
@@ -60,4 +60,4 @@ enum e_error_standard	// TODO: remove after checking it compile
 #  define	INTERFACE_ARGS_USE_JSON	1
 # endif	// !INTERFACE_ARGS_USE_JSON
 
-#endif	// !CONFIG_H
+#endif	// !GENESIS_STANDARDS_LIB_CONFIG_H

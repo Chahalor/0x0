@@ -1,8 +1,8 @@
 /**
  * 
 */
-#ifndef TYPES_INTERNAL_MAP_H
-# define TYPES_INTERNAL_MAP_H
+#ifndef GENESIS_TYPES_INTERNAL_MAP_MAP_H
+# define GENESIS_TYPES_INTERNAL_MAP_MAP_H
 # pragma once
 
 /* ************************************************************************** */
@@ -108,4 +108,4 @@ int	_hash_map_resize(
 	t_hash_map *const	map,
 	const ssize_t		size
 );
-#endif	// TYPES_INTERNAL_MAP_H
+#endif	// GENESIS_TYPES_INTERNAL_MAP_MAP_H

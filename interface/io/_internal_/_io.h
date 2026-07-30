@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_IO_INTERNAL_IO_H
+# define GENESIS_INTERFACE_IO_INTERNAL_IO_H
+
 // Header
 
 # pragma once
@@ -33,3 +36,5 @@ int		_file_manager(
 			void *_output,
 			...
 			);
+
+#endif	// GENESIS_INTERFACE_IO_INTERNAL_IO_H

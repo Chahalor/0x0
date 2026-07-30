@@ -7,8 +7,8 @@
  *
  * @ingroup json
  */
-#ifndef CLIB_FILES_JSON_H
-# define CLIB_FILES_JSON_H
+#ifndef GENESIS_FILES_JSON_H
+# define GENESIS_FILES_JSON_H
 # pragma once
 
 /* ************************************************************************** */
@@ -431,4 +431,4 @@ int		json_get_type(
 			const JSON *const _node
 			);
 
-#endif //!CLIB_FILES_JSON_H
+#endif //!GENESIS_FILES_JSON_H

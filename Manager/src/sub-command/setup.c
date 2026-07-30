@@ -64,7 +64,7 @@ static int	resolve_module(
 	module = find_module(config, name);
 	if (unlikely(!module))
 	{
-		fprintf(stderr, "[" YELLOW "warn" RESET "] module " BOLD "%s" RESET " not found in the clib config\n", name);
+		fprintf(stderr, "[" YELLOW "warn" RESET "] module " BOLD "%s" RESET " not found in the genesis config\n", name);
 		return (-ENOENT);
 	}
 
@@ -152,7 +152,7 @@ int	setup(
 		return (err);
 	}
 
-	err = cmake_write(config, &modules);
+	err = make_write(config, &modules);
 	if (unlikely(err))
 	{
 		array_free(&modules, false);

@@ -1,35 +1,43 @@
-# Clib
-C libs with many usefull functions
+# 0x0 - Genesis
 
-## first compilation
+A modular C library with reusable foundations for memory, files, interfaces,
+networking, time, random values, and generic types.
+
+## Build
+
+Build the complete default library:
+
 ```bash
-mkdir -p build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release	#Debug/RelWithDebInfo/MinSizeRel
+make
 ```
 
-## compiling
+The static archive is written to `build/libgenesis.a`.
+
+Build one main module or submodule directly with the same shared rules:
+
 ```bash
-cmake --build build
-mv build/libclib.a ./clib.a
+make -C memory
+make -C files/json
 ```
 
-## to clean it up
+Override the compiler flags when needed:
+
 ```bash
-cmake --build build --target clean
-rm -rf build
+make CFLAGS='-Wall -Wextra -Werror -std=gnu11 -O2'
 ```
 
-## Debug/tests
+## Clean
+
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
-cc tests/test_args.c  build/libclib.a -Ifiles -Iinterface -I./
-# cc .dev/main.c ./build/libclib.a -I./standards -I./ -Iinterface -g3
+make clean
+make fclean
+make re
 ```
 
 ## Controls
+
+Module controls remain independent executables. For example:
+
 ```bash
-cmake -S . -B build -DCLIB_ENABLE_CONTROLS=ON
-cmake --build build --target controls_<module>
-cmake --build build --target controls
+interface/args/controls/controls.sh
 ```

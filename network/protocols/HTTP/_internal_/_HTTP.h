@@ -1,3 +1,6 @@
+#ifndef GENESIS_NETWORK_PROTOCOLS_HTTP_INTERNAL_HTTP_H
+# define GENESIS_NETWORK_PROTOCOLS_HTTP_INTERNAL_HTTP_H
+
 /**
  * @file _HTTP.h
  * @brief Internal HTTP helpers shared by parsing, serialization, and memory code.
@@ -350,3 +353,5 @@ char	*_http_request_raw(
 	char *const buff,
 	size_t size
 );
+
+#endif	// GENESIS_NETWORK_PROTOCOLS_HTTP_INTERNAL_HTTP_H

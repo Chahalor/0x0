@@ -2,8 +2,8 @@
  * 
 */
 
-#ifndef LIB_NET_PROTOCOLS_HTTP_H
-# define LIB_NET_PROTOCOLS_HTTP_H
+#ifndef GENESIS_NETWORK_PROTOCOLS_HTTP_H
+# define GENESIS_NETWORK_PROTOCOLS_HTTP_H
 
 # pragma once
 
@@ -105,4 +105,4 @@ void	http_free_header(
 	t_http_header *const header
 );
 
-#endif	// LIB_NET_PROTOCOLS_HTTP_H
+#endif	// GENESIS_NETWORK_PROTOCOLS_HTTP_H

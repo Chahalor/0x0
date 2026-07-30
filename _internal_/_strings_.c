@@ -40,7 +40,7 @@ int	_string_reserve_(
 		return (error_invalid_arg);
 
 	_need = (size_t)_dest->len + _add + 1;
-	if (_dest->capacity>= (int)_need)
+	if (_dest->capacity >= _need)
 		return (error_none);
 
 	_new_size = _dest->capacity> 0 ? (size_t)_dest->capacity: INTERFACE_JSON_STRING_ALLOC_SIZE;

@@ -1,3 +1,6 @@
+#ifndef GENESIS_RANDOM_H
+# define GENESIS_RANDOM_H
+
 // Header
 
 # pragma once
@@ -61,3 +64,5 @@ int	*rand_range(
 		const int _val1,
 		const int _val2
 		);
+
+#endif	// GENESIS_RANDOM_H

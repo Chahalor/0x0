@@ -1,3 +1,6 @@
+#ifndef GENESIS_FILES_CSV_INTERNAL_TYPES_H
+# define GENESIS_FILES_CSV_INTERNAL_TYPES_H
+
 // Header
 
 # pragma once
@@ -86,3 +89,5 @@ struct s_lib_csv
 	t_csv_columns_	*columns;	// all columns from this csv
 	t_csv_errors	error;		// last error of this csv
 };
+
+#endif	// GENESIS_FILES_CSV_INTERNAL_TYPES_H

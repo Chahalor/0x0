@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef FORMATING_H
-# define FORMATING_H
+#ifndef GENESIS_STANDARDS_FORMATING_H
+# define GENESIS_STANDARDS_FORMATING_H
 
 # pragma once
 
@@ -66,4 +66,4 @@
 # endif
 
 
-#endif	/* FORMATING_H */
+#endif	/* GENESIS_STANDARDS_FORMATING_H */

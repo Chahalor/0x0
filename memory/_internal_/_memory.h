@@ -1,3 +1,6 @@
+#ifndef GENESIS_MEMORY_INTERNAL_MEMORY_H
+# define GENESIS_MEMORY_INTERNAL_MEMORY_H
+
 // Header
 
 # pragma once
@@ -63,3 +66,5 @@ int		_mem_manager(
 			void *_output,
 			...
 			);
+
+#endif	// GENESIS_MEMORY_INTERNAL_MEMORY_H

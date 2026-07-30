@@ -1,3 +1,6 @@
+#ifndef GENESIS_NETWORK_COMMUNICATION_TYPES_H
+# define GENESIS_NETWORK_COMMUNICATION_TYPES_H
+
 // Header
 
 # pragma once
@@ -60,3 +63,5 @@ struct s_net_conn
 	int				fd;			// for or the connection
 };
 
+
+#endif	// GENESIS_NETWORK_COMMUNICATION_TYPES_H

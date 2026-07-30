@@ -1,3 +1,6 @@
+#ifndef GENESIS_TIMES_H
+# define GENESIS_TIMES_H
+
 // Header
 
 # pragma once
@@ -32,3 +35,5 @@
 /*                                 Prototypes                                 */
 /* ************************************************************************** */
 	//...
+
+#endif	// GENESIS_TIMES_H

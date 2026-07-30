@@ -2,8 +2,8 @@
  * 
  */
 
-#ifndef LIB_NET_PROTOCOLS_HTTP_TYPES_H
-# define LIB_NET_PROTOCOLS_HTTP_TYPES_H
+#ifndef GENESIS_NETWORK_PROTOCOLS_HTTP_TYPES_H
+# define GENESIS_NETWORK_PROTOCOLS_HTTP_TYPES_H
 
 # pragma once
 
@@ -122,4 +122,4 @@ struct s_http
 	size_t				content_length;
 };
 
-#endif	// LIB_NET_PROTOCOLS_HTTP_TYPES_H
+#endif	// GENESIS_NETWORK_PROTOCOLS_HTTP_TYPES_H

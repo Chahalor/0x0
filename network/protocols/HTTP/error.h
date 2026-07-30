@@ -2,8 +2,8 @@
  * 
 */
 
-#ifndef LIB_NET_PROTOCOLS_HTTP_ERROR_H
-# define LIB_NET_PROTOCOLS_HTTP_ERROR_H
+#ifndef GENESIS_NETWORK_PROTOCOLS_HTTP_ERROR_H
+# define GENESIS_NETWORK_PROTOCOLS_HTTP_ERROR_H
 
 # pragma once
 
@@ -46,4 +46,4 @@ enum	e_net_prot_http_errors
 int			net_prot_http_errno(void);
 const char	*net_prot_http_strerror(const int code);
 
-#endif	// LIB_NET_PROTOCOLS_HTTP_ERROR_H
+#endif	// GENESIS_NETWORK_PROTOCOLS_HTTP_ERROR_H

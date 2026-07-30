@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_ARGS_TYPES_H
+# define GENESIS_INTERFACE_ARGS_TYPES_H
+
 /**
  * @file types.h
  * @brief Public types for the `interface/args` module.
@@ -79,3 +82,5 @@ enum e_args_error
 	args_error_conflict,				/**< Conflicting declarations or usage. */
 	args_error_duplicate,				/**< Duplicated declaration or usage. */
 };
+
+#endif	// GENESIS_INTERFACE_ARGS_TYPES_H

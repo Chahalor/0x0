@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_IO_INTERNAL_PRINTF_TYPES_H
+# define GENESIS_INTERFACE_IO_INTERNAL_PRINTF_TYPES_H
+
 // Header
 
 # pragma once
@@ -99,3 +102,5 @@ struct s_fmt
 	char	specifier;   // ex: 'd', 's', 'f', ...
 };
 
+
+#endif	// GENESIS_INTERFACE_IO_INTERNAL_PRINTF_TYPES_H

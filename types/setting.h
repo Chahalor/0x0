@@ -1,8 +1,8 @@
 /**
  * 
 */
-#ifndef TYPES_SETTING_H
-# define TYPES_SETTING_H
+#ifndef GENESIS_TYPES_SETTING_H
+# define GENESIS_TYPES_SETTING_H
 # pragma once
 
 /* ************************************************************************** */
@@ -79,4 +79,4 @@ struct s_types_settings
 
 extern t_types_settings	g_types_settings;
 
-#endif	// TYPES_SETTING_H
+#endif	// GENESIS_TYPES_SETTING_H

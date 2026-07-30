@@ -1,7 +1,7 @@
 // Header
 
-#ifndef LIB_H
-# define LIB_H
+#ifndef GENESIS_LIB_H
+# define GENESIS_LIB_H
 
 # pragma once
 
@@ -39,4 +39,4 @@
 /* ************************************************************************** */
 	//...
 
-#endif	// LIB_H
+#endif	// GENESIS_LIB_H

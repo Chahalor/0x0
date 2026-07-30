@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_H
+# define GENESIS_INTERFACE_H
+
 // Header
 
 # pragma once
@@ -30,3 +33,5 @@
 /*                                 Prototypes                                 */
 /* ************************************************************************** */
 	//...
+
+#endif	// GENESIS_INTERFACE_H

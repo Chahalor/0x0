@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_ARGS_INTERNAL_TYPES_H
+# define GENESIS_INTERFACE_ARGS_INTERNAL_TYPES_H
+
 /**
  * @file _types.h
  * @brief Internal implementation for the interface/args module.
@@ -214,3 +217,5 @@ struct _s_args_output
 	int						error;
 	_t_args_output_parser	*root;
 };
+
+#endif	// GENESIS_INTERFACE_ARGS_INTERNAL_TYPES_H

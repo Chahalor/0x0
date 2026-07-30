@@ -1,3 +1,6 @@
+#ifndef GENESIS_NETWORK_COMMUNICATION_INTERNAL_NETWORK_H
+# define GENESIS_NETWORK_COMMUNICATION_INTERNAL_NETWORK_H
+
 // Header
 
 # pragma once
@@ -33,3 +36,5 @@
 /*                                 Prototypes                                 */
 /* ************************************************************************** */
 	//...
+
+#endif	// GENESIS_NETWORK_COMMUNICATION_INTERNAL_NETWORK_H

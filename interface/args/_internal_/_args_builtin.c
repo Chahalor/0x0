@@ -92,6 +92,7 @@ int	_args_builtin_help(
 	const int _pretty
 )
 {
+	(void)_config;
 	if (!_parser /* || !_config */)
 		return (args_error_internal);
 

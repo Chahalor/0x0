@@ -1,7 +1,7 @@
 // Header
 
-#ifndef STANDARDS_H
-# define STANDARDS_H
+#ifndef GENESIS_STANDARDS_LIB_STANDARDS_H
+# define GENESIS_STANDARDS_LIB_STANDARDS_H
 
 # pragma once
 
@@ -48,4 +48,4 @@
 /* ************************************************************************** */
 	//...
 
-#endif	// !STANDARDS_H
+#endif	// !GENESIS_STANDARDS_LIB_STANDARDS_H

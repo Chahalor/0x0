@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERNAL_INTERNAL_H
+# define GENESIS_INTERNAL_INTERNAL_H
+
 // Header
 
 # pragma once
@@ -163,3 +166,5 @@ int	_fill_format_(
 	_t_string_ *const restrict _result,
 	va_list *const restrict _args
 );
+
+#endif	// GENESIS_INTERNAL_INTERNAL_H

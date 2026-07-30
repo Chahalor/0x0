@@ -9,7 +9,7 @@ exemples:
 > ls
 build           files.h      lib.h    memory     processor  review.md  times.h
 check.sh        interface    Manager  memory.h   random     standards  TODO.md
-CMakeLists.txt  interface.h  math     network    random.h   tests
+Makefile  interface.h  math     network    random.h   tests
 files           _internal_   math.h   network.h  README.md  times
 ```
 
@@ -41,7 +41,7 @@ url = "url to the repo"
 [export]
 includeDir = "include"
 sourceDir = "src"
-buildSystem = "cmake"
+buildSystem = "make"
 
 [[moduleName]]
 path = "path/to/the/module"

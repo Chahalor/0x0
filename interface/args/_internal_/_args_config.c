@@ -40,6 +40,8 @@ void	_args_update_config(
 	const bool _value
 )
 {
+	(void)_field;
+	(void)_value;
 	// switch (expression)
 	// {
 	// case (constant expression):

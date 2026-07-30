@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_LOG_INTERNAL_TYPES_H
+# define GENESIS_INTERFACE_LOG_INTERNAL_TYPES_H
+
 /**
  * @file _types.h
  * @brief Internal types for `interface/log`.
@@ -73,3 +76,5 @@ struct s_log_write
 	char	*format;/**< Format string. */
 	va_list	args;	/**< Arguments for formatted payload. */
 };
+
+#endif	// GENESIS_INTERFACE_LOG_INTERNAL_TYPES_H

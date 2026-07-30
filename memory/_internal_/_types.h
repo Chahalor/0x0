@@ -1,3 +1,6 @@
+#ifndef GENESIS_MEMORY_INTERNAL_TYPES_H
+# define GENESIS_MEMORY_INTERNAL_TYPES_H
+
 // Header
 
 # pragma once
@@ -114,3 +117,5 @@ struct s_mem_manager
 
 	#endif	// MEM_MANAGER_TYPE
 };
+
+#endif	// GENESIS_MEMORY_INTERNAL_TYPES_H

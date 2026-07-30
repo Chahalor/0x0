@@ -2,8 +2,8 @@
  * @file _toml.h
  * @brief Internal TOML helpers.
 */
-#ifndef CLIB_FILES_TOML_INTERNAL_H
-# define CLIB_FILES_TOML_INTERNAL_H
+#ifndef GENESIS_FILES_TOML_INTERNAL_TOML_H
+# define GENESIS_FILES_TOML_INTERNAL_TOML_H
 
 # pragma once
 
@@ -256,4 +256,4 @@ void	_toml_error_dump(
 	FILE *const file
 );
 
-#endif	// CLIB_FILES_TOML_INTERNAL_H
+#endif	// GENESIS_FILES_TOML_INTERNAL_TOML_H

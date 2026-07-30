@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERNAL_CONFIG_H
+# define GENESIS_INTERNAL_CONFIG_H
+
 // Header
 
 # pragma once
@@ -69,3 +72,5 @@ struct _s_internal_config_
 
 /** */
 _t_internal_config_	*_internal_get_config_(void);
+
+#endif	// GENESIS_INTERNAL_CONFIG_H

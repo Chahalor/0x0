@@ -53,7 +53,6 @@ static inline int	_dump_tty(
 				strerror(-error->errnum), error->file ? error->file : "",
 				error->line, error->col);
 
-			size_t len = strlen(error->str_line);
 
 			fprintf(file, GREEN "│" RESET " %s", error->str_line);
 			if (error->str_line[strlen(error->str_line) - 1] != '\n')
@@ -61,7 +60,7 @@ static inline int	_dump_tty(
 			fprintf(file, GREEN "│%*s%s\n", error->col, "", "─┬─");
 			fprintf(file, "└");
 
-			for (size_t i = 1; i < error->col; i++)
+			for (int i = 1; i < error->col; i++)
 				fputs("─", file);
 			fprintf(file, "──┘\n" RESET);
 		}
@@ -78,7 +77,6 @@ static inline int	_dump_tty(
 				_toml_error_str(error->errnum), error->file ? error->file : "",
 				error->line, error->col);
 
-			size_t len = strlen(error->str_line);
 
 			fprintf(file, GREEN "│" RESET " %s", error->str_line);
 			if (error->str_line[strlen(error->str_line) - 1] != '\n')
@@ -86,7 +84,7 @@ static inline int	_dump_tty(
 			fprintf(file, GREEN "│%*s%s\n", error->col, "", "─┬─");
 			fprintf(file, "└");
 
-			for (size_t i = 1; i < error->col; i++)
+			for (int i = 1; i < error->col; i++)
 				fputs("─", file);
 			fprintf(file, "──┘\n" RESET);
 		}
@@ -117,15 +115,14 @@ static inline int	_dump(
 				strerror(-error->errnum), error->file ? error->file : "",
 				error->line, error->col);
 
-			size_t len = strlen(error->str_line);
 
 			fprintf(file, "│ %s", error->str_line);
-			if (error->str_line[len - 1] != '\n')
+			if (error->str_line[strlen(error->str_line) - 1] != '\n')
 				fprintf(file, "\n");
 			fprintf(file, "│%*s%s\n", error->col, "", "─┬─");
 			fprintf(file, "└");
 
-			for (size_t i = 1; i < error->col; i++)
+			for (int i = 1; i < error->col; i++)
 				fputs("─", file);
 			fprintf(file, "──┘\n");
 		}
@@ -142,15 +139,14 @@ static inline int	_dump(
 				_toml_error_str(error->errnum), error->file ? error->file : "",
 				error->line, error->col);
 
-			size_t len = strlen(error->str_line);
 
 			fprintf(file, "│ %s", error->str_line);
-			if (error->str_line[len - 1] != '\n')
+			if (error->str_line[strlen(error->str_line) - 1] != '\n')
 				fprintf(file, "\n");
 			fprintf(file, "│%*s%s\n", error->col, "", "─┬─");
 			fprintf(file, "└");
 
-			for (size_t i = 1; i < error->col; i++)
+			for (int i = 1; i < error->col; i++)
 				fputs("─", file);
 			fprintf(file, "──┘\n");
 		}
@@ -236,7 +232,6 @@ const char	*_toml_error_str(
 	static const char	*strs[] = {
 		[TOML_ERROR_NONE]						= "Success",
 		[TOML_ERROR_INVALID_ARG]				= "Invalid argument",
-		[TOML_ERROR_ALLOC_FAIL]					= "Allocation failed",
 		[TOML_ERROR_INVALID_FILE]				= "Invalid file",
 		[TOML_ERROR_NOT_IMPLEMENTED]			= "Not implemented",
 		[TOML_ERROR_SYSCALL_FAIL]				= "System call failed",

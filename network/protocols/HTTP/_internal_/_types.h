@@ -3,8 +3,8 @@
  * @brief Internal allocator type declarations for the HTTP module.
  */
 
-#ifndef LIB_NET_PROTOCOLS_HTTP__TYPES_H
-# define LIB_NET_PROTOCOLS_HTTP__TYPES_H
+#ifndef GENESIS_NETWORK_PROTOCOLS_HTTP_INTERNAL_TYPES_H
+# define GENESIS_NETWORK_PROTOCOLS_HTTP_INTERNAL_TYPES_H
 
 # pragma once
 
@@ -62,4 +62,4 @@ struct _s_http_allocators
 	t_free_fn		free;
 };
 
-#endif	// LIB_NET_PROTOCOLS_HTTP__TYPES_H
+#endif	// GENESIS_NETWORK_PROTOCOLS_HTTP_INTERNAL_TYPES_H

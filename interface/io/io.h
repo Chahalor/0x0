@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_IO_IO_H
+# define GENESIS_INTERFACE_IO_IO_H
+
 // Big Header
 
 # pragma once
@@ -134,3 +137,5 @@ int		file_readf(
 			const char *const restrict _format,
 			...
 			);
+
+#endif	// GENESIS_INTERFACE_IO_IO_H

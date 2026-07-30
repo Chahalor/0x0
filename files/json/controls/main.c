@@ -90,7 +90,7 @@ static int	create_temp_file_with_content(
 	size_t path_size
 )
 {
-	const char	*template = "/tmp/clib_json_ctrl_XXXXXX";
+	const char	*template = "/tmp/genesis_json_ctrl_XXXXXX";
 	size_t		template_len = strlen(template);
 	int			fd;
 	FILE		*file;

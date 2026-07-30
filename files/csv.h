@@ -1,3 +1,6 @@
+#ifndef GENESIS_FILES_CSV_H
+# define GENESIS_FILES_CSV_H
+
 // Header
 
 # pragma once
@@ -153,3 +156,5 @@ char	*csv_stringify(const CSV *csv);
 
 int			csv_error(const CSV *csv);
 const char	*csv_strerror(const CSV *csv);
+
+#endif	// GENESIS_FILES_CSV_H

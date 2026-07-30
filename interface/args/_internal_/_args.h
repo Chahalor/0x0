@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_ARGS_INTERNAL_ARGS_H
+# define GENESIS_INTERFACE_ARGS_INTERNAL_ARGS_H
+
 /**
  * @file _args.h
  * @brief Internal implementation for the interface/args module.
@@ -604,3 +607,5 @@ const char	*_args_error_str(
 void	_dump_parser(
 	t_args_parser	*const	parser
 );
+
+#endif	// GENESIS_INTERFACE_ARGS_INTERNAL_ARGS_H

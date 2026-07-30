@@ -2,8 +2,8 @@
  * 
 */
 
-#ifndef LIB_NET_H
-# define LIB_NET_H
+#ifndef GENESIS_NETWORK_H
+# define GENESIS_NETWORK_H
 
 # pragma once
 
@@ -35,4 +35,4 @@
 /* ************************************************************************** */
 	//...
 
-#endif	// LIB_NET_H
+#endif	// GENESIS_NETWORK_H

@@ -1,8 +1,8 @@
 /**
  * 
 */
-#ifndef TYPES_INTERNAL_TYPES_H
-# define TYPES_INTERNAL_TYPES_H
+#ifndef GENESIS_TYPES_INTERNAL_TYPES_H
+# define GENESIS_TYPES_INTERNAL_TYPES_H
 # pragma once
 
 /* ************************************************************************** */
@@ -42,4 +42,4 @@ do													\
 /* ************************************************************************** */
 	//...
 
-#endif	// TYPES_INTERNAL_TYPES_H
+#endif	// GENESIS_TYPES_INTERNAL_TYPES_H

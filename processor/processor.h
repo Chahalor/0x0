@@ -2,8 +2,8 @@
  * 
 */
 
-#ifndef LIB_PROCESSOR_H
-# define LIB_PROCESSOR_H
+#ifndef GENESIS_PROCESSOR_PROCESSOR_H
+# define GENESIS_PROCESSOR_PROCESSOR_H
 
 # pragma once
 
@@ -130,4 +130,4 @@
 )
 
 
-#endif	// LIB_PROCESSOR_H
+#endif	// GENESIS_PROCESSOR_PROCESSOR_H

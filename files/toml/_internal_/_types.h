@@ -2,8 +2,8 @@
  * @file _types.h
  * @brief Internal TOML tree declarations.
 */
-#ifndef CLIB_FILES_TOML_INTERNAL_TYPES_H
-# define CLIB_FILES_TOML_INTERNAL_TYPES_H
+#ifndef GENESIS_FILES_TOML_INTERNAL_TYPES_H
+# define GENESIS_FILES_TOML_INTERNAL_TYPES_H
 
 # pragma once
 
@@ -80,4 +80,4 @@ struct s_toml_error
 	enum e_toml_errors	errnum;	// errnum > 0 use the toml error enum and if errnum < 0, use the errno defines
 };
 
-#endif	// CLIB_FILES_TOML_INTERNAL_TYPES_H
+#endif	// GENESIS_FILES_TOML_INTERNAL_TYPES_H

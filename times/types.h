@@ -1,3 +1,6 @@
+#ifndef GENESIS_TIMES_TYPES_H
+# define GENESIS_TIMES_TYPES_H
+
 /**
  * @file	times.h
  * @brief	public API for the time module of the lib
@@ -79,3 +82,5 @@ time_t	time_convert(
 			const __u_char	_base_src,
 			const __u_char	_base_dest
 			);
+
+#endif	// GENESIS_TIMES_TYPES_H

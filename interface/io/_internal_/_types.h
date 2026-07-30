@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_IO_INTERNAL_TYPES_H
+# define GENESIS_INTERFACE_IO_INTERNAL_TYPES_H
+
 // Header
 
 # pragma once
@@ -54,3 +57,5 @@ struct s_file_storage
 	s_file	*storage[MAX_FD];
 	int		opened_files;
 };
+
+#endif	// GENESIS_INTERFACE_IO_INTERNAL_TYPES_H

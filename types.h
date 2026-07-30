@@ -1,8 +1,8 @@
 /**
  * 
 */
-#ifndef CLIB_TYPE_H
-# define CLIB_TYPE_H
+#ifndef GENESIS_TYPES_H
+# define GENESIS_TYPES_H
 # pragma once
 
 /* ************************************************************************** */
@@ -35,7 +35,7 @@
 
 #define hash_map_foreach (var, map) \
 for (uint __i = 0; __i < HASH_MAP_BUCKET_SIZE; __i++)	\
-// {														\
+// {													\
 // 	struct s_hash_map_entry	*__this = &map->map[__i];	\
 // 	if (!__this->)
 // }
@@ -123,4 +123,4 @@ int	hash_map_resize(
 	const ssize_t		size
 );
 
-#endif	// CLIB_TYPE_H
+#endif	// GENESIS_TYPES_H

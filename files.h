@@ -1,3 +1,6 @@
+#ifndef GENESIS_FILES_H
+# define GENESIS_FILES_H
+
 // Header
 
 # pragma once
@@ -31,3 +34,5 @@
 /*                                 Prototypes                                 */
 /* ************************************************************************** */
 	//...
+
+#endif	// GENESIS_FILES_H

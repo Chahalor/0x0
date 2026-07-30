@@ -155,8 +155,6 @@ static size_t	_append_log(
 		return (len);
 
 	const char	*_color = _log_level_color(report->level);
-	const char	*_func = report->func		? report->func		: "(unknown)";
-	const char	*_file = report->file		? report->file		: "(unknown)";
 	const char	*_summary = report->summary	? report->summary	: "";
 	const char	*_body = report->body		? report->body		: "";
 	const char	*_format_sum = tty			? FORMAT_SUM_TTY	: FORMAT_SUM_FILE;
@@ -260,8 +258,6 @@ int	_logs_print(
 	const char	*_color = _log_level_color(report->level);
 	const char	*_format_sum = _tty			? FORMAT_SUM_TTY	: FORMAT_SUM_FILE;
 	const char	*_format_body = _tty		? FORMAT_BODY_TTY	: FORMAT_BODY_FILE;
-	const char	*_func = report->func		? report->func		: "(unknown)";
-	const char	*_file = report->file		? report->file		: "(unknown)";
 	const char	*_summary = report->summary	? report->summary	: "";
 	const char	*_body = report->body		? report->body		: "";
 	time_t		now = report->time			? report->time		: time(NULL);

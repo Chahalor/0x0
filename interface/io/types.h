@@ -1,3 +1,6 @@
+#ifndef GENESIS_INTERFACE_IO_TYPES_H
+# define GENESIS_INTERFACE_IO_TYPES_H
+
 // Header
 
 # pragma once
@@ -48,3 +51,5 @@ struct s_file_internal
 	int		rbuffer[FILE_BUFFER_READ_SIZE];		// buffer for buffersized actions
 	int		wbuffer[FILE_BUFFER_WRITE_SIZE];	// buffer for buffersized actions
 };
+
+#endif	// GENESIS_INTERFACE_IO_TYPES_H

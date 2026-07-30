@@ -1,10 +1,25 @@
-[clib-module]
+[main-module]
 FILE	${NAME}.c
 FILE	../${NAME}.h
 FILE	setting.h
 FILE	types.h
-FILE	CMakeLists.txt
+FILE	makefile
 FILE	_internal_/_${NAME}.c
 FILE	_internal_/_${NAME}.h
 FILE	_internal_/_types.h
+DIR		controls
+
+[sub-module]
+FILE	${NAME}.c
+FILE	error.c
+FILE	error.h
+FILE	${NAME}.h
+FILE	types.h
+FILE	makefile
+FILE	exist.md
+FILE	_internal_/_${NAME}.c
+FILE	_internal_/_${NAME}.h
+FILE	_internal_/_types.h
+FILE	_internal_/_memory.c
+FILE	_internal_/_debug.c
 DIR		controls

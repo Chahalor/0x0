@@ -5,8 +5,8 @@
  * Declarations in this file are private to the module implementation.
  */
 
-#ifndef	LIB_INTERFACE_LOG_INTERNAL_H
-# define LIB_INTERFACE_LOG_INTERNAL_H
+#ifndef	GENESIS_INTERFACE_LOG_INTERNAL_LOG_H
+# define GENESIS_INTERFACE_LOG_INTERNAL_LOG_H
 
 # pragma once
 
@@ -139,4 +139,4 @@ int	_logs(
 	const bool perr
 );
 
-#endif	// LIB_INTERFACE_LOG_INTERNAL_H
+#endif	// GENESIS_INTERFACE_LOG_INTERNAL_LOG_H

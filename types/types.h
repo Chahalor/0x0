@@ -1,8 +1,8 @@
 /**
  * 
 */
-#ifndef TYPES_TYPES_H
-# define TYPES_TYPES_H
+#ifndef GENESIS_TYPES_TYPES_H
+# define GENESIS_TYPES_TYPES_H
 
 # pragma once
 
@@ -90,4 +90,4 @@ struct s_hash_map
 	size_t					capacity;
 };
 
-#endif	// TYPES_TYPES_H
+#endif	// GENESIS_TYPES_TYPES_H

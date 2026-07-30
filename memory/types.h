@@ -1,3 +1,6 @@
+#ifndef GENESIS_MEMORY_TYPES_H
+# define GENESIS_MEMORY_TYPES_H
+
 // Header
 
 # pragma once
@@ -37,3 +40,5 @@
 /*                                 Structs                                    */
 /* ************************************************************************** */
 	//...
+
+#endif	// GENESIS_MEMORY_TYPES_H

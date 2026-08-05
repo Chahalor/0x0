@@ -7,7 +7,7 @@
 
 /* ----| Headers    |----- */
 	/* Standard */
-		//...
+#include <string.h>
 
 	/* Internal */
 #include "_args.h"
@@ -20,12 +20,65 @@
 
 /* ----| Internals  |----- */
 
+static bool	_options_match(
+	const t_args_option	*const	left,
+	const t_args_option	*const	right
+)
+{
+	if (unlikely(!left || !right))
+		return (false);
+
+	if (left->long_name && right->long_name && strcmp(left->long_name, right->long_name) == 0)
+		return (true);
+
+	return (left->short_name && right->short_name && left->short_name == right->short_name);
+}
+
+static bool	_parser_has_option(
+	const t_args_parser	*const	parser,
+	const t_args_option	*const	option
+)
+{
+	const t_args_option	*this;
+
+	if (unlikely(!parser || !option))
+		return (false);
+
+	this = parser->options;
+	while (this)
+	{
+		if (_options_match(this, option))
+			return (true);
+
+		this = this->next;
+	}
+
+	return (false);
+}
+
+static void	_inherit_options(
+	const t_args_parser	*const	parent,
+	t_args_parser		*const	child
+)
+{
+	if (unlikely(!parent || !child))
+		return ;
+
+	for (const t_args_option *option = parent->options;
+		option;
+		option = option->next)
+	{
+		if (_OPT_HAS_HERITANCE(option) && !_parser_has_option(child, option))
+			_args_parser_add_option(child, option->long_name, option->short_name, option->desc, option->spec);
+	}
+}
+
 static void	_add_option(
 	t_args_parser	*const	parent,
 	t_args_option	*const	new
 )
 {
-	t_args_option	*last;
+	t_args_option	*last = NULL;
 
 	if (unlikely(!parent || !new))
 		return ;
@@ -50,9 +103,9 @@ static void	_add_option(
 			this = this->next
 		)
 		{
-			_args_parser_add_option(this, new->long_name, new->short_name, new->desc, new->spec);
+			if (!_parser_has_option(this, new))
+				_args_parser_add_option(this, new->long_name, new->short_name, new->desc, new->spec);
 		}
-		
 	}
 }
 
@@ -95,6 +148,7 @@ t_args_parser	*_args_parser_add_sub(
 		goto error;
 
 	_args_add_sub(_parent, new);
+	_inherit_options(_parent, new);
 
 error:
 	return (new);

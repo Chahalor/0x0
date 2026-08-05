@@ -109,7 +109,6 @@ t_args_option	*_args_parser_add_option(
 )
 {
 	const char		*_lname = NULL;
-	t_args_option	*_last = NULL;
 	t_args_option	*new = NULL;
 
 	if (_long_name && _long_name[0] == '-')

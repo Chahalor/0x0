@@ -21,11 +21,11 @@ $(TARGET): $(MODULES)
 	@test -f $@ || $(AR) rcs $@
 
 $(MODULES):
-	$(MAKE) -C $@ ROOT_DIR=$(CURDIR) BUILD_DIR=$(CURDIR)/$(BUILD_DIR)
+	$(MAKE) -C $@
 
 clean:
 	@for module in $(MODULES); do \
-		$(MAKE) -C $$module ROOT_DIR=$(CURDIR) BUILD_DIR=$(CURDIR)/$(BUILD_DIR) clean; \
+		$(MAKE) -C $$module clean; \
 	done
 
 fclean: clean

@@ -14,9 +14,9 @@ all: local submodules
 submodules: $(SUBMODULES)
 
 $(SUBMODULES):
-	$(MAKE) -C $@ ROOT_DIR=$(ROOT_DIR) BUILD_DIR=$(BUILD_DIR)
+	$(MAKE) -C $@
 
 clean: clean-local
 	@for submodule in $(SUBMODULES); do \
-		$(MAKE) -C $$submodule ROOT_DIR=$(ROOT_DIR) BUILD_DIR=$(BUILD_DIR) clean; \
+		$(MAKE) -C $$submodule clean; \
 	done

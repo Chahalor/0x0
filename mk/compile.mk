@@ -4,10 +4,8 @@ RM              ?= rm -f
 CFLAGS          ?= -Wall -Wextra -Werror -std=gnu11 -g3
 CPPFLAGS        ?=
 
-ROOT_DIR        := $(abspath $(ROOT_DIR))
-BUILD_DIR       := $(abspath $(BUILD_DIR))
-REL_DIR         := $(patsubst $(ROOT_DIR)/%,%,$(CURDIR))
-DIR_NAME        := $(notdir $(CURDIR))
+REL_DIR         := $(shell realpath --relative-to="$(ROOT_DIR)" .)
+DIR_NAME        := $(notdir $(REL_DIR))
 
 INCLUDE_DIRS := \
 	$(ROOT_DIR) \

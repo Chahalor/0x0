@@ -194,7 +194,7 @@ static int	_add_option(
 		|| (short_name && (!short_name[0] || short_name[1])))
 		return (-1);
 	option = _args_parser_add_option(
-		parser, long_name, short_name ? short_name[0] : 0, desc);
+		parser, long_name, short_name ? short_name[0] : 0, desc, 0);
 	if (!option)
 		return (-1);
 	error = 0;

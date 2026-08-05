@@ -173,7 +173,7 @@ _t_args_parser	*_args_mem_new_parser(
 	new->params = NULL;
 	new->sub_parsers = NULL;
 
-	_args_parser_add_option(new, "help", 'h', "show this message");
+	_args_parser_add_option(new, "help", 'h', "show this message", args_opt_spec_hinerit);
 
 error:
 	return (new);

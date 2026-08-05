@@ -155,7 +155,13 @@ t_args_option	*args_parser_add_option(
 	t_args_parser *const _parser,
 	const char *const _long_name,
 	const char _short_name,
-	const char *const _desc
+	const char *const _desc,
+	const int _specs
+);
+
+void	args_option_add_spec(
+	t_args_option	*const	opt,
+	const int				specs
 );
 
 #pragma region Parameters

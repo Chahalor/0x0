@@ -19,7 +19,42 @@
 	//...
 
 /* ----| Internals  |----- */
-	//...
+
+static void	_add_option(
+	t_args_parser	*const	parent,
+	t_args_option	*const	new
+)
+{
+	t_args_option	*last;
+
+	if (unlikely(!parent || !new))
+		return ;
+
+	for (t_args_option	*_this = parent->options;
+		_this;
+		_this = _this->next
+	)
+	{
+		last = _this;
+	}
+
+	if (!last)
+		parent->options = new;
+	else
+		last->next = new;
+
+	if (_OPT_HAS_HERITANCE(new) && parent->sub_parsers)
+	{
+		for (t_args_parser	*this = parent->sub_parsers;
+			this;
+			this = this->next
+		)
+		{
+			_args_parser_add_option(this, new->long_name, new->short_name, new->desc, new->spec);
+		}
+		
+	}
+}
 
 /* ----| Public     |----- */
 
@@ -69,7 +104,8 @@ t_args_option	*_args_parser_add_option(
 	t_args_parser *const _parent,
 	const char *const _long_name,
 	const char _sname,
-	const char *const _desc
+	const char *const _desc,
+	const int _spec
 )
 {
 	const char		*_lname = NULL;
@@ -90,18 +126,8 @@ t_args_option	*_args_parser_add_option(
 	if (unlikely(!new))
 		goto error;
 
-	for (t_args_option	*_this = _parent->options;
-		_this;
-		_this = _this->next
-	)
-	{
-		_last = _this;
-	}
-
-	if (!_last)
-		_parent->options = new;
-	else
-		_last->next = new;
+	new->spec = _spec;
+	_add_option(_parent, new);
 
 error:
 	return (new);

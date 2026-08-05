@@ -4,6 +4,8 @@
 ### args
  - [ ] this module DA should become CLI
  - [ ] add controls with controller
+ - [ ] new option spec: heritance, any opt with this spec is transfered to all sub parse
+		- like having a --version on the main parser and all sub-parser will have a --version.
 
 ## files
 ### JSON

@@ -138,12 +138,13 @@ struct _s_args_param
  */
 struct _s_args_option
 {
-	char			short_name;	// short name of the option
-	char			*long_name;	// long name of the option (only one char == only short option)
-	char			*desc;		// description of the option
+	char					short_name;	// short name of the option
+	char					*long_name;	// long name of the option (only one char == only short option)
+	char					*desc;		// description of the option
+	enum e_args_opt_spec	spec;
 
-	_t_args_param	*params;	// params of the option
-	_t_args_option	*next;		// next possible option the context
+	_t_args_param			*params;	// params of the option
+	_t_args_option			*next;		// next possible option the context
 };
 
 /**

@@ -34,6 +34,7 @@
 /* ************************************************************************** */
 
 #define _ARGS_PARSE_PARAM_ALLOC_SIZE	8
+# define	_OPT_HAS_HERITANCE(opt)	(opt->spec & args_opt_spec_hinerit)
 
 /* ************************************************************************** */
 /*                                 Prototypes                                 */
@@ -270,6 +271,11 @@ int	_args_option_set_desc(
 	const char *const _desc
 );
 
+void	_args_option_add_spec(
+	t_args_option	*const	opt,
+	const int				specs
+);
+
 /** */
 void	_args_add_sub(
 	t_args_parser	*const	_parent,
@@ -288,7 +294,8 @@ t_args_option	*_args_parser_add_option(
 	t_args_parser *const _parent,
 	const char *const _long_name,
 	const char _sname,
-	const char *const _desc
+	const char *const _desc,
+	const int _spec
 );
 
 /** */

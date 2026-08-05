@@ -79,3 +79,11 @@ int	_args_option_set_desc(
 {
 	return (_set_desc(&_target->desc, _desc));
 }
+
+void	_args_option_add_spec(
+	t_args_option	*const	opt,
+	const int				specs
+)
+{
+	opt->spec |= specs;
+}

@@ -54,3 +54,14 @@ int	args_option_set_desc(
 	else
 		return (_args_option_set_desc(_option, _desc));
 }
+
+void	args_option_add_spec(
+	t_args_option	*const	opt,
+	const int				specs
+)
+{
+	if (unlikely(!opt))
+		return ;
+
+	_args_option_add_spec(opt, specs);
+}

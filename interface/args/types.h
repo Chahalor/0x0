@@ -54,6 +54,14 @@ enum e_args_param_specs
 };
 
 /**
+ * 
+*/
+enum e_args_opt_spec
+{
+	args_opt_spec_hinerit	= 1 << 0,	/**< This option will be given to all sub-parser */
+};
+
+/**
  * @brief Parser error codes.
  */
 enum e_args_error

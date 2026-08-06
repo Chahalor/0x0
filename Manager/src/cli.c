@@ -79,29 +79,29 @@ t_args_parser	*setup_args(void)
 		return (NULL);
 
 	/* Main parser options */
-	t_args_option	*output = args_parser_add_option(result, "output", 'o', "destination of the action");
+	t_args_option	*output = args_parser_add_option(result, "output", 'o', "destination of the action", 0);
 	args_add_param(output, "path", NULL, args_param_specs_require, param_type_file);
 
-	t_args_option	*file = args_parser_add_option(result, "config", 'c', "config file that will be used for this action");
+	t_args_option	*file = args_parser_add_option(result, "config", 'c', "config file that will be used for this action", 0);
 	args_add_param(file, "path", NULL, args_param_specs_require, param_type_file);
 
-	t_args_option	*cache_dir = args_parser_add_option(result, "cache-dir", 0, "path to the cache dir used for this action");
+	t_args_option	*cache_dir = args_parser_add_option(result, "cache-dir", 0, "path to the cache dir used for this action", 0);
 	args_add_param(cache_dir, "path", NULL, args_param_specs_require, param_type_file);
 
-	t_args_option	*remote_url = args_parser_add_option(result, "remote-url", 0, "remote url used for this action");
+	t_args_option	*remote_url = args_parser_add_option(result, "remote-url", 0, "remote url used for this action", 0);
 	args_add_param(remote_url, "url", NULL, args_param_specs_require, param_type_str);
 
-	args_parser_add_option(result, "verbose", 'v', "enable the verbose mode for the app");
+	args_parser_add_option(result, "verbose", 'v', "enable the verbose mode for the app", 0);
 
 	/* Sub-parser setup */
 	setup = args_parser_add_sub(result, "setup", "setup the module in the targeted dir");
 	args_add_param(setup, "target", "the requested module to be setup", args_param_specs_nargs | args_param_specs_require, param_type_str);
-	args_parser_add_option(setup, "init", 0, "if the lib is not init in the environement, init it");
+	args_parser_add_option(setup, "init", 0, "if the lib is not init in the environement, init it", 0);
 
 	/* Sub-parser init */
 	init = args_parser_add_sub(result, "init", "init the lib for the full session");
 	args_add_param(init, "cache-dir", "The dir used to store the lib cache", 0, param_type_file);
-	t_args_option	*init_url = args_parser_add_option(init, "remote-url", 0, "the url to the cache remote git");
+	t_args_option	*init_url = args_parser_add_option(init, "remote-url", 0, "the url to the cache remote git", 0);
 	args_add_param(init_url, "url", NULL, args_param_specs_require, param_type_str);
 
 	/* Sub-parser update */
@@ -111,12 +111,12 @@ t_args_parser	*setup_args(void)
 	/* Sub-parser list */
 	list = args_parser_add_sub(result, "list", "List all the avaible module in the current system");
 	args_add_param(list, "target", "target of the listing action", args_param_specs_nargs, param_type_str);
-	args_parser_add_option(list, "deps", 'd', "show the dependencies of each module");
-	args_parser_add_option(list, "version", 'v', "show the version of each modules");
-	args_parser_add_option(list, "stats", 's', "show many stats about each module, like they size, number of file, ...");
-	t_args_option	*opt_list_installed = args_parser_add_option(list, "installed", 'i', "show which module are currently installed in the pwd. By default will check ./genesis or ./GENESIS. By using --installed=<path> it will use this path insted");
+	args_parser_add_option(list, "deps", 'd', "show the dependencies of each module", 0);
+	args_parser_add_option(list, "version", 'v', "show the version of each modules", 0);
+	args_parser_add_option(list, "stats", 's', "show many stats about each module, like they size, number of file, ...", 0);
+	t_args_option	*opt_list_installed = args_parser_add_option(list, "installed", 'i', "show which module are currently installed in the pwd. By default will check ./genesis or ./GENESIS. By using --installed=<path> it will use this path insted", 0);
 	args_add_param(opt_list_installed, "path", NULL, 0, param_type_file);
-	args_parser_add_option(list, "config", 'c', "show information about the current configuration used and the cache");
+	args_parser_add_option(list, "config", 'c', "show information about the current configuration used and the cache", 0);
 
 	/* Sub-parser help */
 	args_parser_add_sub(result, "help", "display the app help");

@@ -12,7 +12,7 @@ make -C Manager
 ## Setup an export
 
 ```bash
-modulesmng \
+genesis \
   --output ./vendor/0x0 \
   --cache-dir ~/.cache/genesis \
   setup files

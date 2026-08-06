@@ -1,13 +1,13 @@
-NAME := modulesmng
+NAME			:= genesis
 
-CC := cc
+CC				:= cc
 
-GENESIS_ROOT := ..
-GENESIS_BUILD := $(GENESIS_ROOT)/build
-GENESIS_LIB := $(GENESIS_BUILD)/libgenesis.a
+GENESIS_ROOT	:= ..
+GENESIS_BUILD	:= $(GENESIS_ROOT)/build
+GENESIS_LIB		:= $(GENESIS_BUILD)/libgenesis.a
 
-SRC_DIR := src
-OBJ_DIR := build/obj
+SRC_DIR			:= src
+OBJ_DIR			:= build/obj
 
 INSTALL_DIR	:= ~/.local/bin
 
@@ -26,9 +26,9 @@ CPPFLAGS := \
 	-I$(GENESIS_ROOT)/random \
 	-I$(GENESIS_ROOT)/times
 
-CFLAGS := -Wall -Wextra -Werror -g3 -O0 -MMD -MP
-LDFLAGS :=
-LDLIBS := $(GENESIS_LIB)
+CFLAGS	:= -Wall -Wextra -Werror -g3 -O0 -MMD -MP
+LDFLAGS	:=
+LDLIBS	:= $(GENESIS_LIB)
 
 .PHONY: all genesis clean fclean re FORCE
 

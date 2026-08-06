@@ -281,7 +281,7 @@ int	config_load(
 			if (errno == ENOENT || toml_errno() == TOML_ERROR_INVALID_FILE || !should_init)
 			{
 				printf("It look like the GENESIS is not init in this setup\n");
-				printf("To init, run: `modulesmng init`");
+				printf("To init, run: `genesis init`");
 				return (-ENOENT);
 			}
 			else if (!should_init)

@@ -1,3 +1,8 @@
+.dev/
+.agents/
+.codex/
+build/
+
 # Prerequisites
 *.d
 
@@ -44,7 +49,6 @@
 
 # Kernel Module Compile Results
 *.mod*
-!.modules
 *.cmd
 .tmp_versions/
 modules.order
@@ -54,11 +58,3 @@ dkms.conf
 
 # debug information files
 *.dwo
-
-.dev/
-.build/
-build/
-build-debug/
-*.dir
-.env
-.codex

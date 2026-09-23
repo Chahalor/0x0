@@ -1,32 +1,34 @@
-NAME            := genesis
-CC              ?= cc
-AR              ?= ar
-RM              ?= rm -f
-CFLAGS          ?= -Wall -Wextra -Werror -std=gnu11 -g3
-CPPFLAGS        ?=
-BUILD_DIR       := build
-MODULES         := _internal_ standards files interface math memory processor random times types
-TARGET          := $(BUILD_DIR)/lib$(NAME).a
+NAME       := genesis
+AR         ?= ar
+RM         ?= rm -f
+BUILD_DIR  := build
+TARGET     := $(BUILD_DIR)/lib$(NAME).a
 
 .DEFAULT_GOAL := all
 
-.PHONY: all $(MODULES) clean fclean re
+.PHONY: all core standards lib clean fclean re
 
 all: $(TARGET)
 
-$(TARGET): $(MODULES)
+core:
+	$(MAKE) -C src/core
+
+standards:
+	$(MAKE) -C src/standards
+
+lib:
+	$(MAKE) -C src/lib
+
+$(TARGET): lib
 	@mkdir -p $(dir $@)
 	@$(RM) $@
-	@find $(BUILD_DIR) -name '*.o' -print0 | xargs -0 -r $(AR) rcs $@
+	@find $(BUILD_DIR)/obj/src -name '*.o' -print0 | xargs -0 -r $(AR) rcs $@
 	@test -f $@ || $(AR) rcs $@
 
-$(MODULES):
-	$(MAKE) -C $@
-
 clean:
-	@for module in $(MODULES); do \
-		$(MAKE) -C $$module clean; \
-	done
+	$(MAKE) -C src/lib clean
+	$(MAKE) -C src/standards clean
+	$(MAKE) -C src/core clean
 
 fclean: clean
 	$(RM) -r $(BUILD_DIR)

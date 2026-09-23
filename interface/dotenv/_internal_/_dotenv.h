@@ -17,24 +17,26 @@
 # include "lib_standards.h"
 
 /* -----| Internals |----- */
-// # include "types.h"
+#include "../settings.h"
+# include "./_types.h"
+#include "../../dotenv.h"
 
 /* -----| Modules   |----- */
-#include "../../dotenv.h"
 #include "memory.h"
 
 /* ************************************************************************** */
 /*                                 Macros                                     */
 /* ************************************************************************** */
 
-#define _NEEDLE_MAX_LEN	128
+# define	_NEEDLE_MAX_LEN	128
+# define	SETTINGS		g_dotenv_settings
 
 /* ************************************************************************** */
 /*                                 Prototypes                                 */
 /* ************************************************************************** */
 
-int	_dotenv_load_file(
-	const char *const _path
+t_interface_dotenv_error	_dotenv_load_file(
+	const char	*const	_path
 );
 
 #endif	// GENESIS_INTERFACE_DOTENV_INTERNAL_DOTENV_H

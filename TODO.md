@@ -1,5 +1,7 @@
 # GENESIS: TODO
 
+- add a global `setting.h`, all module setting.h take it default values for it (like for the allocator).
+
 ## interface
 ### args
  - [ ] add controls with controller

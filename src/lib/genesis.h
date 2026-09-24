@@ -14,6 +14,7 @@
 	//...
 
 /* -----| Globals   |----- */
+# include "core/core.h"
 # include "standards/lib_config.h"
 # include "standards/lib_standards.h"
 

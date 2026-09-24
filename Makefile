@@ -1,4 +1,5 @@
 NAME       := genesis
+CC         ?= cc
 AR         ?= ar
 RM         ?= rm -f
 BUILD_DIR  := build
@@ -6,7 +7,7 @@ TARGET     := $(BUILD_DIR)/lib$(NAME).a
 
 .DEFAULT_GOAL := all
 
-.PHONY: all core standards lib clean fclean re
+.PHONY: all core standards lib test-core clean fclean re
 
 all: $(TARGET)
 
@@ -18,6 +19,13 @@ standards:
 
 lib:
 	$(MAKE) -C src/lib
+
+test-core: core
+	@mkdir -p $(BUILD_DIR)/tests/core
+	$(CC) -std=gnu11 -Wall -Wextra -Werror -Isrc/core \
+		tests/core/error_convention.c $(BUILD_DIR)/libgenesis-core.a \
+		-o $(BUILD_DIR)/tests/core/error_convention
+	$(BUILD_DIR)/tests/core/error_convention
 
 $(TARGET): lib
 	@mkdir -p $(dir $@)

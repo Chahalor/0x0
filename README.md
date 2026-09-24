@@ -28,7 +28,23 @@ You can also build from a product directory, for example `make -C src/core`.
 The products produce `build/libgenesis-core.a`,
 `build/libgenesis-standards.a`, and `build/libgenesis-lib.a` respectively.
 Building `standards` also builds `core`; building `lib` builds both dependencies.
-The four `core` modules are templates and do not expose an API yet.
+The `core` product exposes allocator, buffer, setting, and error APIs through
+`src/core/core.h`.
+
+Core functions returning a status use `0` for success, positive `errno` values
+for standard errors, and negative values for module errors. Pointer-returning
+functions use `NULL` when no pointer can be returned. Each module has a
+`core_<module>_strerror()` function; `genesis_strerror(module, code)` selects
+the appropriate one. Module enums provide nonnegative message-table indices;
+functions return their negation for module errors. For example:
+
+```c
+int status = core_buffer_append(&buffer, bytes, length);
+if (status != 0)
+    fprintf(stderr, "%s\n", genesis_strerror(GENESIS_MODULE_BUFFER, status));
+```
+
+Run the core error-convention test with `make test-core`.
 
 Link a program against the combined archive with headers from the product
 directories:

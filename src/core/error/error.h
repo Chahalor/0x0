@@ -1,7 +1,7 @@
 /**
  * @file error.h
  * @brief Public error messages and central dispatch for Genesis core.
- * @details Dispatches module-specific codes to setting, allocator and buffer.
+ * @details Dispatches through descriptors exported by each module.
  */
 #ifndef GENESIS_CORE_ERROR_H
 # define GENESIS_CORE_ERROR_H
@@ -37,17 +37,21 @@ const char	*core_error_strerror(
 
 /**
  * @brief Dispatch an error code to its module's message function.
- * @param module Module that returned the code.
+ * @param module Stable module descriptor; NULL or an invalid descriptor
+ * produces "Unknown Genesis module".
  * @param code Zero, positive errno, or a negative module error.
  * @return Borrowed message; an invalid module has a fallback message.
  * @par Example
  * @code{.c}
- * puts(genesis_strerror(GENESIS_MODULE_BUFFER, status));
+ * puts(genesis_strerror(&genesis_buffer_error_module, status));
  * @endcode
  */
 const char	*genesis_strerror(
-	const t_genesis_core_module	module,
-	const int					code
+	const t_genesis_error_module	*const	module,
+	const int							code
 );
+
+/** @brief Descriptor for the core error module. */
+extern const t_genesis_error_module	genesis_core_error_module;
 
 #endif

@@ -21,9 +21,14 @@ const char	*core_error_strerror(
 }
 
 const char	*genesis_strerror(
-	const t_genesis_core_module	module,
-	const int					code
+	const t_genesis_error_module	*const	module,
+	const int							code
 )
 {
 	return (_genesis_strerror(module, code));
 }
+
+const t_genesis_error_module	genesis_core_error_module = {
+	.name = "core.error",
+	.describe = core_error_strerror
+};

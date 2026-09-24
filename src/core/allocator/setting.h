@@ -27,7 +27,8 @@
  * An unset key produces the system allocator.
  * @par Example
  * @code{.c}
- * genesis_settings_set(&settings, &genesis_allocator_setting, &allocator);
+ * genesis_settings_set(&settings, &genesis_allocator_setting,
+ *     &allocator, sizeof(allocator));
  * @endcode
  */
 extern const t_genesis_setting_key	genesis_allocator_setting;

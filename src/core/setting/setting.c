@@ -74,10 +74,12 @@ void	genesis_settings_deinit(
 int	genesis_settings_set(
 	t_genesis_settings			*const	settings,
 	const t_genesis_setting_key	*const	key,
-	const void					*const	value
+	const void					*const	value,
+	const size_t						value_size
 )
 {
-	if (!settings || !key || !key->name || key->size == 0 || !value)
+	if (!settings || !key || !key->name || key->size == 0 || !value
+		|| value_size != key->size)
 		return (EINVAL);
 
 	return (_manager_set(settings, key, value));
@@ -86,10 +88,12 @@ int	genesis_settings_set(
 int	genesis_settings_get(
 	const t_genesis_settings		*const	settings,
 	const t_genesis_setting_key		*const	key,
-	void							*const	output
+	void							*const	output,
+	const size_t							output_size
 )
 {
-	if (!settings || !key || !key->name || key->size == 0 || !output)
+	if (!settings || !key || !key->name || key->size == 0 || !output
+		|| output_size != key->size)
 		return (EINVAL);
 
 	return (_manager_get(settings, key, output));

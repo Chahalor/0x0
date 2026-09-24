@@ -90,16 +90,19 @@ static void test_init_deinit_and_invalid_arguments(void **state)
 	core_buffer_deinit(&buffer);
 	assert_null(buffer.bytes);
 	core_buffer_deinit(NULL);
+	buffer.length = 123;
 	assert_int_equal(core_buffer_init_with_allocator(NULL, 4, &allocator),
 		EINVAL);
 	assert_int_equal(core_buffer_init_with_allocator(&buffer, 4, NULL),
 		EINVAL);
+	assert_int_equal(buffer.length, 123);
 	assert_int_equal(core_buffer_init_with_allocator(&buffer, 4,
 		&allocator), 0);
 	assert_int_equal(buffer.capacity, 4);
 	core_buffer_deinit(&buffer);
 	assert_int_equal(core_buffer_init_with_settings(&buffer, 0, NULL),
 		EINVAL);
+	assert_int_equal(buffer.length, 0);
 	assert_int_equal(core_buffer_init_with_settings(NULL, 0, &settings),
 		EINVAL);
 	assert_int_equal(genesis_settings_init(&settings), 0);
@@ -163,14 +166,25 @@ static void test_init_allocation_failure(void **state)
 		.context = &failure, .alloc = fail_after_alloc,
 		.free = fail_after_free
 	};
-	t_genesis_core_buffer buffer;
+	t_genesis_core_buffer buffer = { .length = 123 };
+	t_genesis_settings settings;
 
 	(void)state;
 	assert_int_equal(core_buffer_init_with_allocator(&buffer, 4,
 		&allocator), ENOMEM);
 	assert_null(buffer.bytes);
+	assert_int_equal(buffer.length, 123);
 	assert_int_equal(failure.allocations, 1);
 	assert_int_equal(failure.releases, 0);
+	assert_int_equal(genesis_settings_init(&settings), 0);
+	assert_int_equal(genesis_settings_set(&settings,
+		&genesis_allocator_setting, &allocator, sizeof(allocator)), 0);
+	failure.fail_at = 2;
+	assert_int_equal(core_buffer_init_with_settings(&buffer, 4, &settings),
+		ENOMEM);
+	assert_int_equal(buffer.length, 123);
+	assert_int_equal(failure.allocations, 2);
+	genesis_settings_deinit(&settings);
 }
 
 static void test_reserve_resize_and_clear(void **state)
@@ -215,14 +229,14 @@ static void test_growth_policy_snapshot(void **state)
 	(void)state;
 	assert_int_equal(genesis_settings_init(&settings), 0);
 	assert_int_equal(genesis_settings_set(&settings,
-		&genesis_buffer_setting, &growth), 0);
+		&genesis_buffer_setting, &growth, sizeof(growth)), 0);
 	assert_int_equal(core_buffer_init_with_settings(&first, 0, &settings),
 		0);
 	assert_int_equal(core_buffer_reserve(&first, 3), 0);
 	assert_int_equal(first.capacity, 3);
 	growth.growth = BUFFER_GROWTH_GEOMETRIC;
 	assert_int_equal(genesis_settings_set(&settings,
-		&genesis_buffer_setting, &growth), 0);
+		&genesis_buffer_setting, &growth, sizeof(growth)), 0);
 	assert_int_equal(core_buffer_init_with_settings(&second, 0, &settings),
 		0);
 	assert_int_equal(core_buffer_reserve(&second, 3), 0);

@@ -61,7 +61,9 @@ The diffentes modules should respect the files roles. The public API of each mod
 A configurable module exposes its settings type in `types.h` and a stable
 `t_genesis_setting_key` in its public `setting.h`. The key provides the value
 size and optional default and validation callbacks. Callers use the common
-`genesis_settings_set/get/reset` interface with that key. Modules read their
+`genesis_settings_set/get/reset` interface with that key. Set and get calls
+also pass the true size of the supplied value; a mismatch with the key's size
+returns `EINVAL` before any value bytes are accessed. Modules read their
 configuration from a caller-owned `t_genesis_settings` object and copy any
 values that must remain valid after the object changes or is released. A
 module can add a new key without editing the core settings manager. See
@@ -73,7 +75,7 @@ module can add a new key without editing the core settings manager. See
 - A function returning an error code returns `0` on success, a positive standard `errno` value (`ENOMEM`, `EINVAL`, etc.) for a system error, or a negative module-specific error code.
 - Each module defines its errors in an enum named for that module. Its first value is `MODULE_ERROR_SUCCESS = 0`; its last value is `MODULE_ERROR_UNKNOWN`. The enum values are nonnegative array indices. Return `-MODULE_ERROR_NAME` for a module-specific error.
 - Each module exposes a `strerror` function that accepts its returned code. It describes `0`, positive standard errors, known negative module errors and unknown negative codes. Module messages are stored in a `const char *const` array using designated initializers such as `[MODULE_ERROR_NAME] = "message"`; the lookup uses `-code` as its index. Positive standard errors use the platform `strerror`. Error messages must not be selected by a chain of `if` or `switch` cases.
-- `genesis_strerror(module, code)` dispatches through a constant array of module message functions indexed by `module`. The returned string is borrowed and must not be freed.
+- Each module exports a constant `t_genesis_error_module` descriptor containing its name and `strerror` function. `genesis_strerror(&module_descriptor, code)` dispatches through that descriptor, so a new module does not require a core enum or dispatcher edit. The returned string is borrowed and must not be freed.
 
 ```c
 enum e_genesis_core_buffer_error
@@ -87,7 +89,7 @@ enum e_genesis_core_buffer_error
 ```c
 int status = core_buffer_append(&buffer, data, length);
 if (status != 0)
-	fprintf(stderr, "%s\n", genesis_strerror(GENESIS_MODULE_BUFFER, status));
+	fprintf(stderr, "%s\n", genesis_strerror(&genesis_buffer_error_module, status));
 ```
 
 ## Code format

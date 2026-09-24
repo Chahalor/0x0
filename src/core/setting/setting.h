@@ -92,35 +92,44 @@ void	genesis_settings_deinit(
  * @brief Validate and copy a module's complete settings value.
  * @param settings Initialized manager to update.
  * @param key Stable key exported by the module's setting.h.
- * @param value Pointer to the module's settings type, of key->size bytes.
- * @return 0, positive EINVAL/ENOMEM/EOVERFLOW, or a module validation code.
+ * @param value Pointer to the module's settings value.
+ * @param value_size Size of the object pointed to by value, in bytes.
+ * @return 0, positive EINVAL for invalid arguments or a size mismatch,
+ * ENOMEM/EOVERFLOW, or a module validation code. On error, the previous
+ * setting remains unchanged.
  * @par Example
  * @code{.c}
- * genesis_settings_set(&settings, &genesis_allocator_setting, &allocator);
+ * genesis_settings_set(&settings, &genesis_allocator_setting,
+ *     &allocator, sizeof(allocator));
  * @endcode
  */
 int	genesis_settings_set(
 	t_genesis_settings			*const	settings,
 	const t_genesis_setting_key	*const	key,
-	const void					*const	value
+	const void					*const	value,
+	const size_t						value_size
 );
 
 /**
  * @brief Copy one module's override or its default into caller storage.
  * @param settings Initialized manager to read.
  * @param key Stable key exported by the module's setting.h.
- * @param output Writable storage of key->size bytes.
- * @return 0, positive EINVAL, a module default callback result, or
+ * @param output Writable storage for the module's settings value.
+ * @param output_size Size of the object pointed to by output, in bytes.
+ * @return 0, positive EINVAL for invalid arguments or a size mismatch,
+ * a module default callback result, or
  * -SETTING_ERROR_NOT_CONFIGURED when no value or default exists.
  * @par Example
  * @code{.c}
- * genesis_settings_get(&settings, &genesis_allocator_setting, &allocator);
+ * genesis_settings_get(&settings, &genesis_allocator_setting,
+ *     &allocator, sizeof(allocator));
  * @endcode
  */
 int	genesis_settings_get(
 	const t_genesis_settings		*const	settings,
 	const t_genesis_setting_key		*const	key,
-	void							*const	output
+	void							*const	output,
+	const size_t							output_size
 );
 
 /**

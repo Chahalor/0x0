@@ -19,3 +19,8 @@ const char	*core_allocator_strerror(
 {
 	return (_allocator_strerror(code));
 }
+
+const t_genesis_error_module	genesis_allocator_error_module = {
+	.name = "core.allocator",
+	.describe = core_allocator_strerror
+};

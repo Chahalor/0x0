@@ -19,3 +19,8 @@ const char	*core_buffer_strerror(
 {
 	return (_buffer_strerror(code));
 }
+
+const t_genesis_error_module	genesis_buffer_error_module = {
+	.name = "core.buffer",
+	.describe = core_buffer_strerror
+};

@@ -14,6 +14,9 @@
 /* -----| Internals |----- */
 # include "types.h"
 
+/* -----| Modules   |----- */
+# include "../error/types.h"
+
 /* ************************************************************************** */
 /*                                 Macros                                     */
 /* ************************************************************************** */
@@ -34,5 +37,8 @@
 const char	*core_buffer_strerror(
 	const int	code
 );
+
+/** @brief Descriptor for buffer errors in genesis_strerror(). */
+extern const t_genesis_error_module	genesis_buffer_error_module;
 
 #endif

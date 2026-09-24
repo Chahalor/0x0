@@ -15,9 +15,11 @@ t_genesis_core_buffer *buffer;
 genesis_settings_init(&settings);
 allocator = core_allocator_system();
 /* Replace allocator callbacks and context here if needed. */
-genesis_settings_set(&settings, &genesis_allocator_setting, &allocator);
+genesis_settings_set(&settings, &genesis_allocator_setting,
+    &allocator, sizeof(allocator));
 growth = (t_genesis_core_buffer_settings){64, BUFFER_GROWTH_EXACT};
-genesis_settings_set(&settings, &genesis_buffer_setting, &growth);
+genesis_settings_set(&settings, &genesis_buffer_setting,
+    &growth, sizeof(growth));
 buffer = core_buffer_new_with_settings(64, &settings);
 core_buffer_free(buffer);
 genesis_settings_deinit(&settings);
@@ -25,6 +27,11 @@ genesis_settings_deinit(&settings);
 
 `genesis_settings_set` validates and copies the complete module value.
 `genesis_settings_get` copies the override, or asks the module for its default.
+Both calls require the size of the supplied object. The size must equal the
+module key's `size`; a mismatch returns `EINVAL` before reading or writing the
+object. Pass `sizeof(value)` for both input and output values. C cannot verify
+that a pointer actually refers to an object of the reported size, so callers
+must supply the true size.
 `genesis_settings_reset` removes an override. A key without an override or a
 default produces `-SETTING_ERROR_NOT_CONFIGURED`. The functions return `0` on
 success, positive standard errors, or negative module errors as defined in
@@ -47,6 +54,10 @@ existing buffers.
 The allocator context must remain valid until all allocations made with it are
 released. Do not copy an initialized manager; call `genesis_settings_deinit`
 when finished. Synchronize access if sharing one manager across threads.
+
+A `core_buffer_init` variant leaves its caller-owned buffer unchanged when it
+returns an error. Call `core_buffer_deinit` only after a successful init; use
+`core_buffer_free` for an object returned by a `core_buffer_new` variant.
 
 The older `core_settings_default`, `core_settings_set_allocator`, and
 `core_settings_allocator` helpers remain for existing callers. New module

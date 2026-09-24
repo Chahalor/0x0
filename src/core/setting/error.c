@@ -19,3 +19,8 @@ const char	*core_setting_strerror(
 {
 	return (_setting_strerror(code));
 }
+
+const t_genesis_error_module	genesis_setting_error_module = {
+	.name = "core.setting",
+	.describe = core_setting_strerror
+};

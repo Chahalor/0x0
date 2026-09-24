@@ -22,8 +22,8 @@ const char	*_core_error_strerror(
 	const int	code
 );
 const char	*_genesis_strerror(
-	const t_genesis_core_module	module,
-	const int					code
+	const t_genesis_error_module	*const	module,
+	const int							code
 );
 
 #endif

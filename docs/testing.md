@@ -47,8 +47,10 @@ The tests exercise normal results, invalid arguments, error codes, settings
 defaults and validation, allocator ownership, buffer growth and boundary
 behavior. Regression cases cover buffer self-append during reallocation,
 internal source ranges outside the logical length, and reset of settings
-entries at the head, middle and tail of the list. Strict compilation guards
-against nonstandard enum forward declarations.
+entries at the head, middle and tail of the list. They also cover a buffer
+remaining unchanged when initialization fails, rejection of incorrectly sized
+settings values, and dispatch through a descriptor from a new module. Strict
+compilation guards against nonstandard enum forward declarations.
 
 The CMocka flags come from `pkg-config` by default. For local installations,
 override `CMOCKA_CFLAGS` and `CMOCKA_LIBS`; `CPPCHECK` and `VALGRIND` can also

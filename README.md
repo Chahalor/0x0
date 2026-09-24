@@ -34,14 +34,16 @@ The `core` product exposes allocator, buffer, setting, and error APIs through
 Core functions returning a status use `0` for success, positive `errno` values
 for standard errors, and negative values for module errors. Pointer-returning
 functions use `NULL` when no pointer can be returned. Each module has a
-`core_<module>_strerror()` function; `genesis_strerror(module, code)` selects
-the appropriate one. Module enums provide nonnegative message-table indices;
+`core_<module>_strerror()` function and an error descriptor;
+`genesis_strerror(&descriptor, code)` selects the appropriate one. Module
+enums provide nonnegative message-table indices;
 functions return their negation for module errors. For example:
 
 ```c
 int status = core_buffer_append(&buffer, bytes, length);
 if (status != 0)
-    fprintf(stderr, "%s\n", genesis_strerror(GENESIS_MODULE_BUFFER, status));
+    fprintf(stderr, "%s\n",
+        genesis_strerror(&genesis_buffer_error_module, status));
 ```
 
 Run the core contract suite and its checks with `make test`. The suite uses
@@ -52,7 +54,8 @@ Individual checks and prerequisites are documented in
 The core settings manager lets modules expose configuration keys through their
 own `setting.h`. Use `genesis_settings_set/get/reset` on a caller-owned
 `t_genesis_settings` object. Allocator and buffer growth each have a module
-key; buffers consume both through `core_buffer_new_with_settings`. See
+key; set/get calls require the actual object size. Buffers consume both through
+`core_buffer_new_with_settings`. See
 [docs/settings.md](docs/settings.md) for usage and module integration.
 
 Link a program against the combined archive with headers from the product

@@ -25,7 +25,8 @@
  * @par Example
  * @code{.c}
  * t_genesis_core_buffer_settings value = {64, BUFFER_GROWTH_EXACT};
- * genesis_settings_set(&settings, &genesis_buffer_setting, &value);
+ * genesis_settings_set(&settings, &genesis_buffer_setting,
+ *     &value, sizeof(value));
  * @endcode
  */
 extern const t_genesis_setting_key	genesis_buffer_setting;

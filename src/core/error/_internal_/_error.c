@@ -12,11 +12,6 @@
 # include "_error.h"
 # include "../error.h"
 
-	/* External */
-# include "../../allocator/error.h"
-# include "../../buffer/error.h"
-# include "../../setting/error.h"
-
 /* ----| Prototypes |----- */
 
 /* ----| Internals  |----- */
@@ -24,14 +19,6 @@
 static const char *const	_core_error_messages[] = {
 	[CORE_ERROR_SUCCESS] = "Success",
 	[CORE_ERROR_UNKNOWN] = "Unknown core error"
-};
-
-/** @brief Module message functions indexed by public module IDs. */
-static const char *(*const	_genesis_error_handlers[])(int) = {
-	[GENESIS_MODULE_ERROR] = core_error_strerror,
-	[GENESIS_MODULE_SETTING] = core_setting_strerror,
-	[GENESIS_MODULE_ALLOCATOR] = core_allocator_strerror,
-	[GENESIS_MODULE_BUFFER] = core_buffer_strerror
 };
 
 /** @brief Decode standard errno or index the core message table. */
@@ -52,19 +39,14 @@ const char	*_core_error_strerror(
 	return (_core_error_messages[index]);
 }
 
-/** @brief Index the module handler table and dispatch its error code. */
+/** @brief Dispatch through any module's stable message descriptor. */
 const char	*_genesis_strerror(
-	const t_genesis_core_module	module,
-	const int					code
+	const t_genesis_error_module	*const	module,
+	const int							code
 )
 {
-	size_t	index;
-
-	index = (size_t)module;
-	if (index >= sizeof(_genesis_error_handlers)
-		/ sizeof(_genesis_error_handlers[0])
-		|| !_genesis_error_handlers[index])
+	if (!module || !module->name || !module->describe)
 		return ("Unknown Genesis module");
 
-	return (_genesis_error_handlers[index](code));
+	return (module->describe(code));
 }

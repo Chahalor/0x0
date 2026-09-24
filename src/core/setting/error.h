@@ -14,6 +14,9 @@
 /* -----| Internals |----- */
 # include "types.h"
 
+/* -----| Modules   |----- */
+# include "../error/types.h"
+
 /* ************************************************************************** */
 /*                                 Macros                                     */
 /* ************************************************************************** */
@@ -34,5 +37,8 @@
 const char	*core_setting_strerror(
 	const int	code
 );
+
+/** @brief Descriptor for settings errors in genesis_strerror(). */
+extern const t_genesis_error_module	genesis_setting_error_module;
 
 #endif

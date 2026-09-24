@@ -84,25 +84,37 @@ static void test_manager_validation_and_defaults(void **state)
 	assert_int_equal(genesis_settings_init(NULL), EINVAL);
 	assert_int_equal(genesis_settings_init(&settings), 0);
 	assert_int_equal(genesis_settings_get(&settings,
-		&genesis_allocator_setting, &allocator), 0);
+		&genesis_allocator_setting, &allocator, sizeof(allocator)), 0);
 	assert_int_equal(core_allocator_validate(&allocator), 0);
 	assert_int_equal(genesis_settings_get(&settings,
-		&genesis_buffer_setting, &buffer_settings), 0);
+		&genesis_buffer_setting, &buffer_settings, sizeof(buffer_settings)), 0);
 	assert_int_equal(buffer_settings.initial_capacity, 64);
 	assert_int_equal(buffer_settings.growth, BUFFER_GROWTH_GEOMETRIC);
-	assert_int_equal(genesis_settings_set(NULL, &genesis_allocator_setting,
-		&allocator), EINVAL);
-	assert_int_equal(genesis_settings_set(&settings, NULL, &value), EINVAL);
-	assert_int_equal(genesis_settings_set(&settings, &bad_name, &value), EINVAL);
-	assert_int_equal(genesis_settings_set(&settings, &bad_size, &value), EINVAL);
+	value = 17;
 	assert_int_equal(genesis_settings_set(&settings,
-		&genesis_allocator_setting, NULL), EINVAL);
-	assert_int_equal(genesis_settings_get(NULL,
-		&genesis_allocator_setting, &allocator), EINVAL);
-	assert_int_equal(genesis_settings_get(&settings, NULL, &value), EINVAL);
-	assert_int_equal(genesis_settings_get(&settings, &bad_name, &value), EINVAL);
+		&genesis_allocator_setting, &value, sizeof(value)), EINVAL);
 	assert_int_equal(genesis_settings_get(&settings,
-		&genesis_allocator_setting, NULL), EINVAL);
+		&genesis_allocator_setting, &value, sizeof(value)), EINVAL);
+	assert_int_equal(value, 17);
+	assert_int_equal(genesis_settings_set(&settings,
+		&genesis_allocator_setting, &allocator,
+		sizeof(allocator) - 1), EINVAL);
+	assert_int_equal(genesis_settings_get(&settings,
+		&genesis_allocator_setting, &allocator,
+		sizeof(allocator) + 1), EINVAL);
+	assert_int_equal(genesis_settings_set(NULL, &genesis_allocator_setting,
+		&allocator, sizeof(allocator)), EINVAL);
+	assert_int_equal(genesis_settings_set(&settings, NULL, &value, sizeof(value)), EINVAL);
+	assert_int_equal(genesis_settings_set(&settings, &bad_name, &value, sizeof(value)), EINVAL);
+	assert_int_equal(genesis_settings_set(&settings, &bad_size, &value, sizeof(value)), EINVAL);
+	assert_int_equal(genesis_settings_set(&settings,
+		&genesis_allocator_setting, NULL, 0), EINVAL);
+	assert_int_equal(genesis_settings_get(NULL,
+		&genesis_allocator_setting, &allocator, sizeof(allocator)), EINVAL);
+	assert_int_equal(genesis_settings_get(&settings, NULL, &value, sizeof(value)), EINVAL);
+	assert_int_equal(genesis_settings_get(&settings, &bad_name, &value, sizeof(value)), EINVAL);
+	assert_int_equal(genesis_settings_get(&settings,
+		&genesis_allocator_setting, NULL, 0), EINVAL);
 	assert_int_equal(genesis_settings_reset(NULL,
 		&genesis_allocator_setting), EINVAL);
 	assert_int_equal(genesis_settings_reset(&settings, NULL), EINVAL);
@@ -130,34 +142,34 @@ static void test_set_get_reset_and_key_identity(void **state)
 	(void)state;
 	assert_int_equal(genesis_settings_init(&settings), 0);
 	assert_int_equal(genesis_settings_init(&other), 0);
-	assert_int_equal(genesis_settings_get(&settings, &key_a, &value), 0);
+	assert_int_equal(genesis_settings_get(&settings, &key_a, &value, sizeof(value)), 0);
 	assert_int_equal(value, 7);
-	assert_int_equal(genesis_settings_get(&settings, &key_b, &value),
+	assert_int_equal(genesis_settings_get(&settings, &key_b, &value, sizeof(value)),
 		-SETTING_ERROR_NOT_CONFIGURED);
 	assert_int_equal(genesis_settings_get(&settings, &failed_default,
-		&value), EIO);
+		&value, sizeof(value)), EIO);
 	value = 12;
-	assert_int_equal(genesis_settings_set(&settings, &key_a, &value), 0);
+	assert_int_equal(genesis_settings_set(&settings, &key_a, &value, sizeof(value)), 0);
 	value = 21;
-	assert_int_equal(genesis_settings_set(&settings, &key_b, &value), 0);
+	assert_int_equal(genesis_settings_set(&settings, &key_b, &value, sizeof(value)), 0);
 	value = 0;
-	assert_int_equal(genesis_settings_get(&settings, &key_a, &value), 0);
+	assert_int_equal(genesis_settings_get(&settings, &key_a, &value, sizeof(value)), 0);
 	assert_int_equal(value, 12);
-	assert_int_equal(genesis_settings_get(&settings, &key_b, &value), 0);
+	assert_int_equal(genesis_settings_get(&settings, &key_b, &value, sizeof(value)), 0);
 	assert_int_equal(value, 21);
 	value = -1;
-	assert_int_equal(genesis_settings_set(&settings, &key_a, &value),
+	assert_int_equal(genesis_settings_set(&settings, &key_a, &value, sizeof(value)),
 		-SETTING_ERROR_UNKNOWN);
-	assert_int_equal(genesis_settings_get(&settings, &key_a, &value), 0);
+	assert_int_equal(genesis_settings_get(&settings, &key_a, &value, sizeof(value)), 0);
 	assert_int_equal(value, 12);
-	assert_int_equal(genesis_settings_get(&other, &key_a, &value), 0);
+	assert_int_equal(genesis_settings_get(&other, &key_a, &value, sizeof(value)), 0);
 	assert_int_equal(value, 7);
 	assert_int_equal(genesis_settings_reset(&settings, &key_b), 0);
-	assert_int_equal(genesis_settings_get(&settings, &key_b, &value),
+	assert_int_equal(genesis_settings_get(&settings, &key_b, &value, sizeof(value)),
 		-SETTING_ERROR_NOT_CONFIGURED);
 	assert_int_equal(genesis_settings_reset(&settings, &key_a), 0);
 	assert_int_equal(genesis_settings_reset(&settings, &key_a), 0);
-	assert_int_equal(genesis_settings_get(&settings, &key_a, &value), 0);
+	assert_int_equal(genesis_settings_get(&settings, &key_a, &value, sizeof(value)), 0);
 	assert_int_equal(value, 7);
 	genesis_settings_deinit(&settings);
 	genesis_settings_deinit(&other);
@@ -176,24 +188,24 @@ static void test_invalid_module_settings_are_atomic(void **state)
 	(void)state;
 	assert_int_equal(genesis_settings_init(&settings), 0);
 	assert_int_equal(genesis_settings_set(&settings,
-		&genesis_allocator_setting, &allocator), 0);
+		&genesis_allocator_setting, &allocator, sizeof(allocator)), 0);
 	allocator.alloc = NULL;
 	assert_int_equal(genesis_settings_set(&settings,
-		&genesis_allocator_setting, &allocator), EINVAL);
+		&genesis_allocator_setting, &allocator, sizeof(allocator)), EINVAL);
 	assert_int_equal(genesis_settings_get(&settings,
-		&genesis_allocator_setting, &selected), 0);
+		&genesis_allocator_setting, &selected, sizeof(selected)), 0);
 	assert_non_null(selected.alloc);
 	assert_int_equal(genesis_settings_set(&settings,
-		&genesis_buffer_setting, &buffer_settings), 0);
+		&genesis_buffer_setting, &buffer_settings, sizeof(buffer_settings)), 0);
 	buffer_settings.initial_capacity = 0;
 	assert_int_equal(genesis_settings_set(&settings,
-		&genesis_buffer_setting, &buffer_settings), EINVAL);
+		&genesis_buffer_setting, &buffer_settings, sizeof(buffer_settings)), EINVAL);
 	buffer_settings.initial_capacity = 8;
 	buffer_settings.growth = (t_genesis_core_buffer_growth)99;
 	assert_int_equal(genesis_settings_set(&settings,
-		&genesis_buffer_setting, &buffer_settings), EINVAL);
+		&genesis_buffer_setting, &buffer_settings, sizeof(buffer_settings)), EINVAL);
 	assert_int_equal(genesis_settings_get(&settings,
-		&genesis_buffer_setting, &selected_buffer), 0);
+		&genesis_buffer_setting, &selected_buffer, sizeof(selected_buffer)), 0);
 	assert_int_equal(selected_buffer.initial_capacity, 8);
 	assert_int_equal(selected_buffer.growth, BUFFER_GROWTH_EXACT);
 	genesis_settings_deinit(&settings);
@@ -216,15 +228,15 @@ static void test_reset_links_and_allocator_snapshot(void **state)
 	(void)state;
 	assert_int_equal(genesis_settings_init(&settings), 0);
 	assert_int_equal(genesis_settings_set(&settings,
-		&genesis_allocator_setting, &allocator), 0);
-	assert_int_equal(genesis_settings_set(&settings, &a, &value), 0);
-	assert_int_equal(genesis_settings_set(&settings, &b, &value), 0);
-	assert_int_equal(genesis_settings_set(&settings, &c, &value), 0);
-	assert_int_equal(genesis_settings_set(&settings, &d, &value), 0);
+		&genesis_allocator_setting, &allocator, sizeof(allocator)), 0);
+	assert_int_equal(genesis_settings_set(&settings, &a, &value, sizeof(value)), 0);
+	assert_int_equal(genesis_settings_set(&settings, &b, &value, sizeof(value)), 0);
+	assert_int_equal(genesis_settings_set(&settings, &c, &value, sizeof(value)), 0);
+	assert_int_equal(genesis_settings_set(&settings, &d, &value, sizeof(value)), 0);
 	assert_int_equal(genesis_settings_reset(&settings, &d), 0);
 	assert_int_equal(genesis_settings_reset(&settings, &b), 0);
 	assert_int_equal(genesis_settings_reset(&settings, &a), 0);
-	assert_int_equal(genesis_settings_get(&settings, &c, &value), 0);
+	assert_int_equal(genesis_settings_get(&settings, &c, &value, sizeof(value)), 0);
 	assert_int_equal(value, 5);
 	assert_int_equal(genesis_settings_reset(&settings,
 		&genesis_allocator_setting), 0);
@@ -243,7 +255,9 @@ static void test_size_overflow(void **state)
 
 	(void)state;
 	assert_int_equal(genesis_settings_init(&settings), 0);
-	assert_int_equal(genesis_settings_set(&settings, &key, &value), EOVERFLOW);
+	/* Overflow is rejected before the deliberately impossible size is read. */
+	assert_int_equal(genesis_settings_set(&settings, &key, &value, SIZE_MAX),
+		EOVERFLOW);
 	genesis_settings_deinit(&settings);
 }
 

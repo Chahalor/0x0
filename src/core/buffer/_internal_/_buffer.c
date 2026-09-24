@@ -88,18 +88,22 @@ int	_buffer_init_with_allocator(
 	const t_genesis_core_allocator	*const	allocator
 )
 {
-	*buffer = (t_genesis_core_buffer){
+	t_genesis_core_buffer	candidate;
+
+	candidate = (t_genesis_core_buffer){
 		.allocator = *allocator,
 		.settings = _buffer_settings_default()
 	};
-	if (capacity == 0)
-		return (0);
+	if (capacity != 0)
+	{
+		candidate.bytes = core_alloc(&candidate.allocator, capacity);
+		if (!candidate.bytes)
+			return (ENOMEM);
 
-	buffer->bytes = core_alloc(&buffer->allocator, capacity);
-	if (!buffer->bytes)
-		return (ENOMEM);
+		candidate.capacity = capacity;
+	}
 
-	buffer->capacity = capacity;
+	*buffer = candidate;
 	return (0);
 }
 
@@ -115,12 +119,12 @@ int	_buffer_init_with_settings(
 	int								result;
 
 	result = genesis_settings_get(settings, &genesis_allocator_setting,
-		&allocator);
+		&allocator, sizeof(allocator));
 	if (result != 0)
 		return (result);
 
 	result = genesis_settings_get(settings, &genesis_buffer_setting,
-		&buffer_settings);
+		&buffer_settings, sizeof(buffer_settings));
 	if (result != 0)
 		return (result);
 
@@ -190,7 +194,7 @@ t_genesis_core_buffer	*_buffer_new_with_settings(
 	int								result;
 
 	result = genesis_settings_get(settings, &genesis_allocator_setting,
-		&allocator);
+		&allocator, sizeof(allocator));
 	if (result != 0)
 	{
 		errno = result > 0 ? result : EINVAL;
@@ -198,7 +202,7 @@ t_genesis_core_buffer	*_buffer_new_with_settings(
 	}
 
 	result = genesis_settings_get(settings, &genesis_buffer_setting,
-		&buffer_settings);
+		&buffer_settings, sizeof(buffer_settings));
 	if (result != 0)
 	{
 		errno = result > 0 ? result : EINVAL;

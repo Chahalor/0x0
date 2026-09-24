@@ -29,7 +29,8 @@
  * @brief Initialize caller-owned, uninitialized buffer storage.
  * @param buffer Buffer object to initialize.
  * @param capacity Initial byte capacity; zero is accepted.
- * @return 0, EINVAL, or ENOMEM.
+ * @return 0, EINVAL, or ENOMEM. On failure, buffer is unchanged and must not
+ * be passed to core_buffer_deinit unless it was initialized before this call.
  * @par Example
  * @code{.c}
  * t_genesis_core_buffer buffer;
@@ -46,7 +47,7 @@ int	core_buffer_init(
  * @param buffer Buffer object to initialize.
  * @param capacity Initial byte capacity; zero is accepted.
  * @param allocator Valid allocator that will own byte storage.
- * @return 0, EINVAL, or ENOMEM.
+ * @return 0, EINVAL, or ENOMEM. On failure, buffer is unchanged.
  * @par Example
  * @code{.c}
  * core_buffer_init_with_allocator(&buffer, 16, &allocator);
@@ -63,7 +64,8 @@ int	core_buffer_init_with_allocator(
  * @param buffer Uninitialized buffer object.
  * @param capacity Initial byte capacity.
  * @param settings Initialized shared settings manager.
- * @return 0, positive errno, or a setting module error.
+ * @return 0, positive errno, or a setting module error. On failure, buffer
+ * is unchanged.
  * @par Example
  * @code{.c}
  * core_buffer_init_with_settings(&buffer, 16, &settings);
@@ -77,7 +79,9 @@ int	core_buffer_init_with_settings(
 
 /**
  * @brief Release byte storage and zero a caller-owned buffer.
- * @param buffer Initialized buffer; NULL is accepted.
+ * @param buffer Caller-owned buffer successfully initialized by a
+ * core_buffer_init variant; NULL is accepted. Do not use on objects created
+ * by a core_buffer_new variant; release those with core_buffer_free.
  * @return Nothing.
  * @par Example
  * @code{.c}
@@ -133,7 +137,8 @@ t_genesis_core_buffer	*core_buffer_new_with_settings(
 
 /**
  * @brief Release a buffer object created by core_buffer_new variants.
- * @param buffer Owned object; NULL is accepted.
+ * @param buffer Object created by a core_buffer_new variant; NULL is accepted.
+ * Do not use on caller-owned buffers or after core_buffer_deinit.
  * @return Nothing.
  * @par Example
  * @code{.c}
@@ -197,7 +202,8 @@ int	core_buffer_append(
  * @param buffer Initialized buffer.
  * @param data Source bytes; may refer to existing buffer bytes.
  * @param length Number of source bytes; zero permits NULL data.
- * @return 0, EINVAL, EOVERFLOW, or ENOSPC.
+ * @return 0, EINVAL, EOVERFLOW, ENOSPC, or
+ * -BUFFER_ERROR_SOURCE_OUT_OF_RANGE for an internal source outside length.
  * @par Example
  * @code{.c}
  * core_buffer_append_fixed(&buffer, "abc", 3);

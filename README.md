@@ -46,6 +46,12 @@ if (status != 0)
 
 Run the core error-convention test with `make test-core`.
 
+The core settings manager lets modules expose configuration keys through their
+own `setting.h`. Use `genesis_settings_set/get/reset` on a caller-owned
+`t_genesis_settings` object. Allocator and buffer growth each have a module
+key; buffers consume both through `core_buffer_new_with_settings`. See
+[docs/settings.md](docs/settings.md) for usage and module integration.
+
 Link a program against the combined archive with headers from the product
 directories:
 

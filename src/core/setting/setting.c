@@ -9,6 +9,7 @@
 
 	/* Internal */
 # include "setting.h"
+# include "_internal_/_manager.h"
 # include "_internal_/_setting.h"
 
 	/* External */
@@ -47,4 +48,60 @@ const t_genesis_core_allocator	*core_settings_allocator(
 	}
 
 	return (_settings_allocator(settings));
+}
+
+int	genesis_settings_init(
+	t_genesis_settings	*const	settings
+)
+{
+	if (!settings)
+		return (EINVAL);
+
+	_manager_init(settings);
+	return (0);
+}
+
+void	genesis_settings_deinit(
+	t_genesis_settings	*const	settings
+)
+{
+	if (!settings)
+		return;
+
+	_manager_deinit(settings);
+}
+
+int	genesis_settings_set(
+	t_genesis_settings			*const	settings,
+	const t_genesis_setting_key	*const	key,
+	const void					*const	value
+)
+{
+	if (!settings || !key || !key->name || key->size == 0 || !value)
+		return (EINVAL);
+
+	return (_manager_set(settings, key, value));
+}
+
+int	genesis_settings_get(
+	const t_genesis_settings		*const	settings,
+	const t_genesis_setting_key	*const	key,
+	void						*const	output
+)
+{
+	if (!settings || !key || !key->name || key->size == 0 || !output)
+		return (EINVAL);
+
+	return (_manager_get(settings, key, output));
+}
+
+int	genesis_settings_reset(
+	t_genesis_settings			*const	settings,
+	const t_genesis_setting_key	*const	key
+)
+{
+	if (!settings || !key || !key->name || key->size == 0)
+		return (EINVAL);
+
+	return (_manager_reset(settings, key));
 }

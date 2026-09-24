@@ -18,6 +18,7 @@
 /** @brief Messages indexed by setting error enum values. */
 static const char *const	_setting_messages[] = {
 	[SETTING_ERROR_SUCCESS] = "Success",
+	[SETTING_ERROR_NOT_CONFIGURED] = "Setting is not configured",
 	[SETTING_ERROR_UNKNOWN] = "Unknown setting error"
 };
 

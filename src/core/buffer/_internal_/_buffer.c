@@ -11,10 +11,13 @@
 
 	/* Internal */
 # include "_buffer.h"
+# include "_setting.h"
 
 	/* External */
 # include "../../allocator/allocator.h"
+# include "../../allocator/setting.h"
 # include "../error.h"
+# include "../setting.h"
 # include "../../setting/setting.h"
 
 /* ----| Prototypes |----- */
@@ -59,6 +62,7 @@ int	_buffer_is_valid(
 {
 	return (buffer && buffer->length <= buffer->capacity
 		&& (buffer->capacity == 0 || buffer->bytes != NULL)
+		&& _buffer_setting_validate(&buffer->settings) == 0
 		&& core_allocator_validate(&buffer->allocator) == 0);
 }
 
@@ -68,11 +72,13 @@ int	_buffer_init_default(
 	const size_t					capacity
 )
 {
-	t_genesis_core_settings	settings;
+	t_genesis_settings	settings;
+	int					result;
 
-	settings = core_settings_default();
-	return (_buffer_init_with_allocator(buffer, capacity,
-		core_settings_allocator(&settings)));
+	genesis_settings_init(&settings);
+	result = _buffer_init_with_settings(buffer, capacity, &settings);
+	genesis_settings_deinit(&settings);
+	return (result);
 }
 
 /** @brief Capture an allocator and optionally allocate initial byte storage. */
@@ -82,7 +88,10 @@ int	_buffer_init_with_allocator(
 	const t_genesis_core_allocator	*const	allocator
 )
 {
-	*buffer = (t_genesis_core_buffer){.allocator = *allocator};
+	*buffer = (t_genesis_core_buffer){
+		.allocator = *allocator,
+		.settings = _buffer_settings_default()
+	};
 	if (capacity == 0)
 		return (0);
 
@@ -92,6 +101,34 @@ int	_buffer_init_with_allocator(
 
 	buffer->capacity = capacity;
 	return (0);
+}
+
+/** @brief Resolve the allocator from a shared settings manager. */
+int	_buffer_init_with_settings(
+	t_genesis_core_buffer		*const	buffer,
+	const size_t						capacity,
+	const t_genesis_settings	*const	settings
+)
+{
+	t_genesis_core_allocator	allocator;
+	t_genesis_core_buffer_settings	buffer_settings;
+	int						result;
+
+	result = genesis_settings_get(settings, &genesis_allocator_setting,
+		&allocator);
+	if (result != 0)
+		return (result);
+
+	result = genesis_settings_get(settings, &genesis_buffer_setting,
+		&buffer_settings);
+	if (result != 0)
+		return (result);
+
+	result = _buffer_init_with_allocator(buffer, capacity, &allocator);
+	if (result == 0)
+		buffer->settings = buffer_settings;
+
+	return (result);
 }
 
 /** @brief Release byte storage and reset a caller-owned buffer. */
@@ -108,11 +145,13 @@ t_genesis_core_buffer	*_buffer_new_default(
 	const size_t	capacity
 )
 {
-	t_genesis_core_settings	settings;
+	t_genesis_settings		settings;
+	t_genesis_core_buffer	*buffer;
 
-	settings = core_settings_default();
-	return (_buffer_new_with_allocator(capacity,
-		core_settings_allocator(&settings)));
+	genesis_settings_init(&settings);
+	buffer = _buffer_new_with_settings(capacity, &settings);
+	genesis_settings_deinit(&settings);
+	return (buffer);
 }
 
 /** @brief Allocate the object and its bytes with one allocator. */
@@ -135,6 +174,40 @@ t_genesis_core_buffer	*_buffer_new_with_allocator(
 		errno = result;
 		return (NULL);
 	}
+
+	return (buffer);
+}
+
+/** @brief Resolve an allocator and create an owned buffer. */
+t_genesis_core_buffer	*_buffer_new_with_settings(
+	const size_t						capacity,
+	const t_genesis_settings	*const	settings
+)
+{
+	t_genesis_core_allocator	allocator;
+	t_genesis_core_buffer_settings	buffer_settings;
+	t_genesis_core_buffer		*buffer;
+	int						result;
+
+	result = genesis_settings_get(settings, &genesis_allocator_setting,
+		&allocator);
+	if (result != 0)
+	{
+		errno = result > 0 ? result : EINVAL;
+		return (NULL);
+	}
+
+	result = genesis_settings_get(settings, &genesis_buffer_setting,
+		&buffer_settings);
+	if (result != 0)
+	{
+		errno = result > 0 ? result : EINVAL;
+		return (NULL);
+	}
+
+	buffer = _buffer_new_with_allocator(capacity, &allocator);
+	if (buffer)
+		buffer->settings = buffer_settings;
 
 	return (buffer);
 }
@@ -163,16 +236,22 @@ int	_buffer_reserve(
 	if (min_capacity <= buffer->capacity)
 		return (0);
 
-	capacity = buffer->capacity ? buffer->capacity : 64;
-	while (capacity < min_capacity)
+	if (buffer->settings.growth == BUFFER_GROWTH_EXACT)
+		capacity = min_capacity;
+	else
 	{
-		if (capacity > SIZE_MAX / 2)
+		capacity = buffer->capacity ? buffer->capacity
+			: buffer->settings.initial_capacity;
+		while (capacity < min_capacity)
 		{
-			capacity = min_capacity;
-			break;
-		}
+			if (capacity > SIZE_MAX / 2)
+			{
+				capacity = min_capacity;
+				break;
+			}
 
-		capacity *= 2;
+			capacity *= 2;
+		}
 	}
 
 	bytes = core_realloc(&buffer->allocator, buffer->bytes,

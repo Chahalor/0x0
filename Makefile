@@ -26,6 +26,10 @@ test-core: core
 		tests/core/error_convention.c $(BUILD_DIR)/libgenesis-core.a \
 		-o $(BUILD_DIR)/tests/core/error_convention
 	$(BUILD_DIR)/tests/core/error_convention
+	$(CC) -std=gnu11 -Wall -Wextra -Werror -Isrc/core \
+		tests/core/settings_manager.c $(BUILD_DIR)/libgenesis-core.a \
+		-o $(BUILD_DIR)/tests/core/settings_manager
+	$(BUILD_DIR)/tests/core/settings_manager
 
 $(TARGET): lib
 	@mkdir -p $(dir $@)

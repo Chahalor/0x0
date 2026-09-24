@@ -30,6 +30,11 @@ int						_buffer_init_with_allocator(
 	const size_t							capacity,
 	const t_genesis_core_allocator	*const	allocator
 );
+int						_buffer_init_with_settings(
+	t_genesis_core_buffer		*const	buffer,
+	const size_t						capacity,
+	const t_genesis_settings	*const	settings
+);
 void					_buffer_deinit(
 	t_genesis_core_buffer			*const	buffer
 );
@@ -39,6 +44,10 @@ t_genesis_core_buffer	*_buffer_new_default(
 t_genesis_core_buffer	*_buffer_new_with_allocator(
 	const size_t							capacity,
 	const t_genesis_core_allocator	*const	allocator
+);
+t_genesis_core_buffer	*_buffer_new_with_settings(
+	const size_t						capacity,
+	const t_genesis_settings	*const	settings
 );
 void					_buffer_free(
 	t_genesis_core_buffer	*const	buffer

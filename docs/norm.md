@@ -56,6 +56,17 @@ A internal part with all the module implementation and logic. none of the code f
 Each module should provide a makefile ready to be included inside the main makefile. Have a clear and documented error handling with publci errors codes and functions to use thems.
 The diffentes modules should respect the files roles. The public API of each module should be in module_name.h, the type exported by this module in types.h and the public implementation of each API functions in module_name.c.
 
+## Module settings
+
+A configurable module exposes its settings type in `types.h` and a stable
+`t_genesis_setting_key` in its public `setting.h`. The key provides the value
+size and optional default and validation callbacks. Callers use the common
+`genesis_settings_set/get/reset` interface with that key. Modules read their
+configuration from a caller-owned `t_genesis_settings` object and copy any
+values that must remain valid after the object changes or is released. A
+module can add a new key without editing the core settings manager. See
+[settings.md](settings.md) for the current API and ownership rules.
+
 ## Error convention
 
 - A function returning a pointer returns `NULL` when it cannot provide a pointer. When applicable, it sets `errno` to a standard positive error code.

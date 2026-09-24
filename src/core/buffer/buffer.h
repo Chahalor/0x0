@@ -59,6 +59,23 @@ int	core_buffer_init_with_allocator(
 );
 
 /**
+ * @brief Initialize a buffer using the manager's allocator setting.
+ * @param buffer Uninitialized buffer object.
+ * @param capacity Initial byte capacity.
+ * @param settings Initialized shared settings manager.
+ * @return 0, positive errno, or a setting module error.
+ * @par Example
+ * @code{.c}
+ * core_buffer_init_with_settings(&buffer, 16, &settings);
+ * @endcode
+ */
+int	core_buffer_init_with_settings(
+	t_genesis_core_buffer		*const	buffer,
+	const size_t						capacity,
+	const t_genesis_settings	*const	settings
+);
+
+/**
  * @brief Release byte storage and zero a caller-owned buffer.
  * @param buffer Initialized buffer; NULL is accepted.
  * @return Nothing.
@@ -100,6 +117,21 @@ t_genesis_core_buffer	*core_buffer_new_with_allocator(
 );
 
 /**
+ * @brief Allocate a buffer using the manager's allocator setting.
+ * @param capacity Initial byte capacity.
+ * @param settings Initialized shared settings manager.
+ * @return Owned buffer, or NULL with errno set on failure.
+ * @par Example
+ * @code{.c}
+ * t_genesis_core_buffer *buffer = core_buffer_new_with_settings(16, &settings);
+ * @endcode
+ */
+t_genesis_core_buffer	*core_buffer_new_with_settings(
+	const size_t						capacity,
+	const t_genesis_settings	*const	settings
+);
+
+/**
  * @brief Release a buffer object created by core_buffer_new variants.
  * @param buffer Owned object; NULL is accepted.
  * @return Nothing.
@@ -113,7 +145,7 @@ void	core_buffer_free(
 );
 
 /**
- * @brief Ensure capacity without changing length or contents.
+ * @brief Ensure capacity using the captured growth policy.
  * @param buffer Initialized buffer.
  * @param min_capacity Minimum number of bytes to hold.
  * @return 0, EINVAL, or ENOMEM.

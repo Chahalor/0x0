@@ -43,6 +43,18 @@ int	core_buffer_init_with_allocator(
 	return (_buffer_init_with_allocator(buffer, capacity, allocator));
 }
 
+int	core_buffer_init_with_settings(
+	t_genesis_core_buffer		*const	buffer,
+	const size_t						capacity,
+	const t_genesis_settings	*const	settings
+)
+{
+	if (!buffer || !settings)
+		return (EINVAL);
+
+	return (_buffer_init_with_settings(buffer, capacity, settings));
+}
+
 void	core_buffer_deinit(
 	t_genesis_core_buffer	*const	buffer
 )
@@ -72,6 +84,20 @@ t_genesis_core_buffer	*core_buffer_new_with_allocator(
 	}
 
 	return (_buffer_new_with_allocator(capacity, allocator));
+}
+
+t_genesis_core_buffer	*core_buffer_new_with_settings(
+	const size_t						capacity,
+	const t_genesis_settings	*const	settings
+)
+{
+	if (!settings)
+	{
+		errno = EINVAL;
+		return (NULL);
+	}
+
+	return (_buffer_new_with_settings(capacity, settings));
 }
 
 void	core_buffer_free(

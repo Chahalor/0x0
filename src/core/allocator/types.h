@@ -18,9 +18,6 @@
 /*                                 Typedefs                                   */
 /* ************************************************************************** */
 
-/* -----| Enums     |----- */
-typedef enum e_genesis_core_allocator_error	t_genesis_core_allocator_error;
-
 /* -----| Structs   |----- */
 typedef struct s_genesis_core_allocator	t_genesis_core_allocator;
 
@@ -30,9 +27,10 @@ typedef struct s_genesis_core_allocator	t_genesis_core_allocator;
 
 enum e_genesis_core_allocator_error
 {
-	ALLOCATOR_ERROR_SUCCESS = 0,
-	ALLOCATOR_ERROR_UNKNOWN = 1
+	ALLOCATOR_ERROR_SUCCESS		= 0,
+	ALLOCATOR_ERROR_UNKNOWN		= 1
 };
+typedef enum e_genesis_core_allocator_error	t_genesis_core_allocator_error;
 
 /* ************************************************************************** */
 /*                                 Structs                                    */
@@ -47,10 +45,21 @@ enum e_genesis_core_allocator_error
 struct s_genesis_core_allocator
 {
 	void	*context;
-	void	*(*alloc)(void *context, size_t size);
-	void	*(*realloc)(void *context, void *ptr,
-			size_t old_size, size_t new_size);
-	void	(*free)(void *context, void *ptr, size_t size);
+	void	*(*alloc)(
+		void		*context,
+		size_t		size
+	);
+	void	*(*realloc)(
+		void		*context,
+		void		*ptr,
+		size_t		old_size,
+		size_t		new_size
+	);
+	void	(*free)(
+		void		*context,
+		void		*ptr,
+		size_t		size
+	);
 };
 
 #endif

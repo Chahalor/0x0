@@ -119,8 +119,8 @@ int	genesis_settings_set(
  */
 int	genesis_settings_get(
 	const t_genesis_settings		*const	settings,
-	const t_genesis_setting_key	*const	key,
-	void						*const	output
+	const t_genesis_setting_key		*const	key,
+	void							*const	output
 );
 
 /**

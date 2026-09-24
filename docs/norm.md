@@ -179,3 +179,34 @@ enum e_genesis_core_buffer_enum
 The docs for any part of the code must follow the doxygen format.
 Each header file must have A header before the protection macro with is goal, scope and modules.
 Each fucntion of a public API must document they params, returns values, actions and have at least one usage example. Private one must be more implemetation oriented.
+
+## Tests
+
+For every new module or public API change, define the module before writing its
+implementation. Complete these steps in order:
+
+1. Define the public API in the module's public headers: functions, exported
+   types, settings and error codes.
+2. Document each function's contract: valid and invalid inputs, return value
+   and error codes, output and state changes, ownership and lifetime, defaults,
+   and boundary behavior where applicable.
+3. Write CMocka tests from those contracts. Include normal, invalid and
+   boundary cases before implementing the function.
+4. Connect the module's tests to the Make targets. The public headers,
+   contracts, test suite and build skeleton form the module's initial template.
+5. Only then implement the module and make the contract tests pass.
+
+An API change updates its contract and tests before its implementation. A bug
+fix first adds a test that reproduces the bug, then changes the implementation.
+The regression test remains in the suite. Existing modules can adopt this
+sequence as their public APIs are reviewed.
+
+Public module APIs are tested with CMocka. Each public contract needs a test
+for return values, error codes, defaults, boundary behavior and ownership when
+applicable. Every corrected behavior bug gets a regression test that fails
+before the fix and remains in the suite.
+
+`make test` runs strict compilation, AddressSanitizer and
+UndefinedBehaviorSanitizer, Valgrind Memcheck and Cppcheck. Each check also has
+an individual Make target. See [testing.md](testing.md) for the current suite
+and commands.

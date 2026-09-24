@@ -25,7 +25,7 @@ static int	_buffer_source_offset(
 	const t_genesis_core_buffer	*const	buffer,
 	const void					*const	data,
 	const size_t						length,
-	size_t							*const	offset
+	size_t						*const	offset
 );
 
 /* ----| Internals  |----- */
@@ -34,7 +34,7 @@ static int	_buffer_source_offset(
 	const t_genesis_core_buffer	*const	buffer,
 	const void					*const	data,
 	const size_t						length,
-	size_t							*const	offset
+	size_t						*const	offset
 )
 {
 	uintptr_t	base;
@@ -110,9 +110,9 @@ int	_buffer_init_with_settings(
 	const t_genesis_settings	*const	settings
 )
 {
-	t_genesis_core_allocator	allocator;
+	t_genesis_core_allocator		allocator;
 	t_genesis_core_buffer_settings	buffer_settings;
-	int						result;
+	int								result;
 
 	result = genesis_settings_get(settings, &genesis_allocator_setting,
 		&allocator);
@@ -184,10 +184,10 @@ t_genesis_core_buffer	*_buffer_new_with_settings(
 	const t_genesis_settings	*const	settings
 )
 {
-	t_genesis_core_allocator	allocator;
+	t_genesis_core_allocator		allocator;
 	t_genesis_core_buffer_settings	buffer_settings;
-	t_genesis_core_buffer		*buffer;
-	int						result;
+	t_genesis_core_buffer			*buffer;
+	int								result;
 
 	result = genesis_settings_get(settings, &genesis_allocator_setting,
 		&allocator);
@@ -271,11 +271,12 @@ int	_buffer_resize(
 )
 {
 	size_t	old_length;
-	int		result;
 
 	old_length = buffer->length;
 	if (new_length > old_length)
 	{
+		int	result;
+
 		result = _buffer_reserve(buffer, new_length);
 		if (result != 0)
 			return (result);

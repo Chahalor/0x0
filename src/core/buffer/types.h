@@ -22,10 +22,6 @@
 /*                                 Typedefs                                   */
 /* ************************************************************************** */
 
-/* -----| Enums     |----- */
-typedef enum e_genesis_core_buffer_error	t_genesis_core_buffer_error;
-typedef enum e_genesis_core_buffer_growth	t_genesis_core_buffer_growth;
-
 /* -----| Structs   |----- */
 typedef struct s_genesis_core_buffer	t_genesis_core_buffer;
 typedef struct s_genesis_core_buffer_settings	t_genesis_core_buffer_settings;
@@ -36,16 +32,18 @@ typedef struct s_genesis_core_buffer_settings	t_genesis_core_buffer_settings;
 
 enum e_genesis_core_buffer_error
 {
-	BUFFER_ERROR_SUCCESS = 0,
-	BUFFER_ERROR_SOURCE_OUT_OF_RANGE = 1,
-	BUFFER_ERROR_UNKNOWN = 2
+	BUFFER_ERROR_SUCCESS				= 0,
+	BUFFER_ERROR_SOURCE_OUT_OF_RANGE	= 1,
+	BUFFER_ERROR_UNKNOWN				= 2
 };
+typedef enum e_genesis_core_buffer_error	t_genesis_core_buffer_error;
 
 enum e_genesis_core_buffer_growth
 {
-	BUFFER_GROWTH_GEOMETRIC = 0,
-	BUFFER_GROWTH_EXACT = 1
+	BUFFER_GROWTH_GEOMETRIC	= 0,
+	BUFFER_GROWTH_EXACT		= 1
 };
+typedef enum e_genesis_core_buffer_growth	t_genesis_core_buffer_growth;
 
 /* ************************************************************************** */
 /*                                 Unions                                     */
@@ -58,7 +56,7 @@ enum e_genesis_core_buffer_growth
 /** @brief Growth policy captured when a buffer is initialized. */
 struct s_genesis_core_buffer_settings
 {
-	size_t						initial_capacity;
+	size_t							initial_capacity;
 	t_genesis_core_buffer_growth	growth;
 };
 
@@ -69,10 +67,10 @@ struct s_genesis_core_buffer_settings
  */
 struct s_genesis_core_buffer
 {
-	unsigned char				*bytes;
-	size_t						length;
-	size_t						capacity;
-	t_genesis_core_allocator	allocator;
+	unsigned char					*bytes;
+	size_t							length;
+	size_t							capacity;
+	t_genesis_core_allocator		allocator;
 	t_genesis_core_buffer_settings	settings;
 };
 

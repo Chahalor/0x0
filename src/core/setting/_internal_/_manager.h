@@ -31,8 +31,8 @@ int		_manager_set(
 );
 int		_manager_get(
 	const t_genesis_settings		*const	settings,
-	const t_genesis_setting_key	*const	key,
-	void						*const	output
+	const t_genesis_setting_key		*const	key,
+	void							*const	output
 );
 int		_manager_reset(
 	t_genesis_settings			*const	settings,

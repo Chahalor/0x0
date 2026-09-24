@@ -20,14 +20,14 @@
 /* ----| Prototypes |----- */
 static t_genesis_setting_node	*_manager_find(
 	const t_genesis_settings		*const	settings,
-	const t_genesis_setting_key	*const	key
+	const t_genesis_setting_key		*const	key
 );
 
 /* ----| Internals  |----- */
 /** @brief Find one module override by descriptor identity. */
 static t_genesis_setting_node	*_manager_find(
 	const t_genesis_settings		*const	settings,
-	const t_genesis_setting_key	*const	key
+	const t_genesis_setting_key		*const	key
 )
 {
 	t_genesis_setting_node	*entry;
@@ -79,9 +79,9 @@ int	_manager_set(
 	const void					*const	value
 )
 {
-	t_genesis_setting_node	*entry;
+	t_genesis_setting_node		*entry;
 	t_genesis_core_allocator	storage_allocator;
-	int						result;
+	int							result;
 
 	if (key->validate)
 	{
@@ -118,11 +118,11 @@ int	_manager_set(
 /** @brief Copy an override or ask the module for its default value. */
 int	_manager_get(
 	const t_genesis_settings		*const	settings,
-	const t_genesis_setting_key	*const	key,
-	void						*const	output
+	const t_genesis_setting_key		*const	key,
+	void							*const	output
 )
 {
-	t_genesis_setting_node	*entry;
+	const t_genesis_setting_node	*entry;
 
 	entry = _manager_find(settings, key);
 	if (entry)
@@ -143,22 +143,27 @@ int	_manager_reset(
 	const t_genesis_setting_key	*const	key
 )
 {
-	t_genesis_setting_node	**link;
+	t_genesis_setting_node	*previous;
 	t_genesis_setting_node	*entry;
 
-	link = &settings->entries;
-	while (*link)
+	previous = NULL;
+	entry = settings->entries;
+	while (entry)
 	{
-		if ((*link)->key == key)
+		if (entry->key == key)
 		{
-			entry = *link;
-			*link = entry->next;
+			if (previous)
+				previous->next = entry->next;
+			else
+				settings->entries = entry->next;
+
 			core_free(&entry->allocator, entry,
 				sizeof(*entry) + entry->key->size);
 			return (0);
 		}
 
-		link = &(*link)->next;
+		previous = entry;
+		entry = entry->next;
 	}
 
 	return (0);

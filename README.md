@@ -44,7 +44,10 @@ if (status != 0)
     fprintf(stderr, "%s\n", genesis_strerror(GENESIS_MODULE_BUFFER, status));
 ```
 
-Run the core error-convention test with `make test-core`.
+Run the core contract suite and its checks with `make test`. The suite uses
+CMocka, AddressSanitizer, UndefinedBehaviorSanitizer, Valgrind and Cppcheck.
+Individual checks and prerequisites are documented in
+[docs/testing.md](docs/testing.md).
 
 The core settings manager lets modules expose configuration keys through their
 own `setting.h`. Use `genesis_settings_set/get/reset` on a caller-owned

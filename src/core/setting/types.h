@@ -21,13 +21,9 @@
 /*                                 Typedefs                                   */
 /* ************************************************************************** */
 
-/* -----| Enums     |----- */
-typedef enum e_genesis_core_setting_error	t_genesis_core_setting_error;
-
 /* -----| Structs   |----- */
 typedef struct s_genesis_core_settings	t_genesis_core_settings;
 typedef struct s_genesis_setting_key	t_genesis_setting_key;
-typedef struct s_genesis_setting_node	t_genesis_setting_node;
 typedef struct s_genesis_settings	t_genesis_settings;
 
 /* ************************************************************************** */
@@ -36,10 +32,11 @@ typedef struct s_genesis_settings	t_genesis_settings;
 
 enum e_genesis_core_setting_error
 {
-	SETTING_ERROR_SUCCESS = 0,
-	SETTING_ERROR_NOT_CONFIGURED = 1,
-	SETTING_ERROR_UNKNOWN = 2
+	SETTING_ERROR_SUCCESS			= 0,
+	SETTING_ERROR_NOT_CONFIGURED	= 1,
+	SETTING_ERROR_UNKNOWN			= 2
 };
+typedef enum e_genesis_core_setting_error	t_genesis_core_setting_error;
 
 /* ************************************************************************** */
 /*                                 Structs                                    */
@@ -60,8 +57,12 @@ struct s_genesis_setting_key
 {
 	const char	*name;
 	size_t		size;
-	int			(*defaults)(void *output);
-	int			(*validate)(const void *value);
+	int			(*defaults)(
+		void	*output
+	);
+	int			(*validate)(
+		const void	*value
+	);
 };
 
 /**
@@ -72,7 +73,7 @@ struct s_genesis_setting_key
  */
 struct s_genesis_settings
 {
-	t_genesis_setting_node	*entries;
+	void	*entries;
 };
 
 #endif

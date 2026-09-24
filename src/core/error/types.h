@@ -15,10 +15,6 @@
 /*                                 Typedefs                                   */
 /* ************************************************************************** */
 
-/* -----| Enums     |----- */
-typedef enum e_genesis_core_module	t_genesis_core_module;
-typedef enum e_genesis_core_error	t_genesis_core_error;
-
 /* ************************************************************************** */
 /*                                 Enums                                      */
 /* ************************************************************************** */
@@ -30,11 +26,13 @@ enum e_genesis_core_module
 	GENESIS_MODULE_ALLOCATOR,
 	GENESIS_MODULE_BUFFER
 };
+typedef enum e_genesis_core_module	t_genesis_core_module;
 
 enum e_genesis_core_error
 {
-	CORE_ERROR_SUCCESS = 0,
-	CORE_ERROR_UNKNOWN = 1
+	CORE_ERROR_SUCCESS	= 0,
+	CORE_ERROR_UNKNOWN	= 1
 };
+typedef enum e_genesis_core_error	t_genesis_core_error;
 
 #endif

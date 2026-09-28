@@ -14,7 +14,7 @@
 	- des format custom qui peuvent etre ajouter par un dev via une API
 		- ex: format_set("JSON", json_stringify) -> call io.print("output: %{JSON}\n", json)
 		- maybe un system pour passer des args   -> ex: io.print("output: %{JSON%d}\n", json, 4)
-- rework the log to have a diagnostic feature
+- rework the logs module
 	- simple log with differente level (config per levels)
 	- system de diagnostic, qui se stack puis qui peuvent etre relacher a un moment
 	- system d'erreur dans une file, avec ciblage de ligne, de colone, de quantiter de mot, de char special

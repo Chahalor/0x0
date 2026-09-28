@@ -18,7 +18,7 @@
 
 /* -----| Internals |----- */
 # include "_types.h"
-# include "../memory.h"
+# include "../../memory.h"
 
 /* -----| Modules   |----- */
 	//...
@@ -36,7 +36,7 @@
 
 #if MEM_MANAGER_TYPE == 1
 
-rb_tree	*rb_init(void);
+rb_tree	*rb_init(const t_genesis_core_allocator *allocator);
 
 rb_node	*rb_create_node(
 			rb_tree *T,

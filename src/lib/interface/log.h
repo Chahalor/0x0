@@ -136,7 +136,7 @@
  * @param	_data Configuration for each log stream and display behavior.
  *
  * @return `error_invalid_arg` when `_data == NULL`.
- * @return `1` when `_data != NULL` (current implementation behavior).
+ * @return `0` on success.
  *
  * @version 2.0.0
  *

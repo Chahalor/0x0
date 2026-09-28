@@ -3,7 +3,9 @@
 /* ----| Headers    |----- */
 	/* Standard */
 #include <stdlib.h>
-#include <time.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdint.h>
 
 	/* Internal */
 #include "random.h"
@@ -17,17 +19,6 @@
 
 /* ----| Internals  |----- */
 
-/**
- * @brief	init the srand() has a constructor
- * 
- * @version	1.0
- */
-__attribute__((constructor))
-static void	random_init_seed(void)
-{
-	srand(time(NULL));
-}
-
 /* ----| Public     |----- */
 
 int	randint(
@@ -35,11 +26,21 @@ int	randint(
 	const int _val2
 )
 {
-	const int	_val = rand();
 	const int	_min = min(_val1, _val2);
 	const int	_max = max(_val1, _val2);
+	const uint64_t span = (uint64_t)((int64_t)_max - _min) + 1;
+	const uint64_t threshold = (uint64_t)(-span) % span;
+	uint64_t sample;
+	int i;
 
-	return (_min + (_val % ((_max - _min) + 1)));
+	do
+	{
+		sample = 0;
+		i = 0;
+		while (i++ < 5)
+			sample = (sample << 15) | ((unsigned int)rand() & 0x7fffU);
+	} while (sample < threshold);
+	return ((int)((int64_t)_min + (int64_t)(sample % span)));
 }
 
 __attribute__((malloc))
@@ -52,7 +53,14 @@ int	*rand_range(
 	int				*result = NULL;
 	unsigned int	_i = 0;
 
-	result = mem_alloc((_size + 1) * sizeof(int));
+	#if SIZE_MAX <= UINT_MAX
+	if ((size_t)_size > SIZE_MAX / sizeof(int) - 1)
+	{
+		errno = EOVERFLOW;
+		return (NULL);
+	}
+	#endif
+	result = mem_alloc(((size_t)_size + 1) * sizeof(int));
 	if (unlikely(!result))
 		return (NULL);
 	while (_i < _size)

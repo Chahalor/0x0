@@ -33,7 +33,9 @@
 /* ************************************************************************** */
 
 /**
- * @brief	return a value between val1 and val2
+ * @brief Return a pseudorandom integer in the inclusive range, in either order.
+ * @note Uses the application's rand() state and does not call srand(). The
+ * caller may seed rand() if desired. Not suitable for cryptography.
  * 
  * @param	val1	first value
  * @param	val2	second value
@@ -48,13 +50,15 @@ int	randint(
 		);
 
 /**
- * @brief	retrun a malloc'd array of int size long filled with random values between val1 and val2
+ * @brief Return a registered array of size values followed by a zero sentinel.
+ * @note The sentinel cannot be used to find the end when zero is a valid value.
+ * Release the array with mem_free().
  * 
  * @param	size	the size of the array
  * @param	val1	first value for the range
  * @param	val2	seconde vale for the range
  * 
- * @return	the dynamicly NULL terminated array or NULL
+ * @return The allocated array, or NULL with errno set on failure.
  * @retval		ptr: the array
  * @retval		NULL: some errors append
  * 

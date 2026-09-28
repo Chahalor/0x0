@@ -32,7 +32,7 @@
  * @param data Log initialization payload.
  *
  * @return `error_invalid_arg` when `data == NULL`.
- * @return `1` when `data != NULL` (current implementation behavior).
+ * @return `0` on success.
  *
  * @version 2.0.0
  *
@@ -48,7 +48,7 @@ int	log_init(
 	if (unlikely(!data))
 		return (error_invalid_arg);
 
-	return (_log_config(data) != NULL);
+	return (_log_init(_log_config(NULL), data));
 }
 
 /**

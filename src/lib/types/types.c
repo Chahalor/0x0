@@ -11,6 +11,8 @@
 
 	/* External */
 #include "../memory.h"
+#include <errno.h>
+#include <stdint.h>
 
 /* ----| Prototypes |----- */
 	//...
@@ -48,18 +50,19 @@ int	hash_map_setup(
 	const size_t		size
 )
 {
-	const size_t	old_capacity = map->capacity;
-	int				r = 0;
-
-	if (unlikely(!map))
+	if (unlikely(!map || size == 0))
 		return_error(error_invalid_arg, NULL, error_invalid_arg);
-
+	if (map->map || map->capacity || map->length)
+		return_error(error_invalid_arg, NULL, error_invalid_arg);
+	if (size > SIZE_MAX / sizeof(t_hash_map_entry *))
+		return_error(EOVERFLOW, NULL, EOVERFLOW);
 	map->capacity = size;
-	r = _hash_map_setup(map);
-	if (unlikely(r))
-		map->capacity = old_capacity;
-
-	return (r);
+	if (_hash_map_setup(map) != 0)
+	{
+		map->capacity = 0;
+		return (setting->error.errnum);
+	}
+	return (0);
 }
 
 int	hash_map_destroy(
@@ -78,7 +81,7 @@ int	hash_map_add(
 	void *const			value
 )
 {
-	if (unlikely(!map || !key))
+	if (unlikely(!map || !map->map || !map->capacity || !key))
 		return_error(error_invalid_arg, key, error_invalid_arg);
 
 	return (_hash_map_add(map, key, value));
@@ -89,7 +92,7 @@ void	*hash_map_find(
 	char *const			key
 )
 {
-	if (unlikely(!map || !key))
+	if (unlikely(!map || !map->map || !map->capacity || !key))
 		return_error(error_invalid_arg, key, NULL);
 
 	return (_hash_map_find(map, key));
@@ -103,7 +106,7 @@ void	**hash_map_find_ptr(
 	char *const			key
 )
 {
-	if (unlikely(!map || !key))
+	if (unlikely(!map || !map->map || !map->capacity || !key))
 		return_error(error_invalid_arg, key, NULL);
 
 	return (_hash_map_find_ptr(map, key));
@@ -114,14 +117,14 @@ void	hash_map_remove(
 	char *const			key
 )
 {
-	if (unlikely(!map || !key))
+	if (unlikely(!map || !map->map || !map->capacity || !key))
 	{
 		setting->error.errnum = error_invalid_arg;
 		setting->error.key = key;
 		return ;
 	}
 
-	return (_hash_map_remove(map, key));
+	_hash_map_remove(map, key);
 }
 
 bool	hash_map_contains(
@@ -129,7 +132,7 @@ bool	hash_map_contains(
 	const char *const		key
 )
 {
-	if (unlikely(!map || !key))
+	if (unlikely(!map || !map->map || !map->capacity || !key))
 		return_error(error_invalid_arg, key, false);
 
 	return (_hash_map_contains(map, key));
@@ -141,7 +144,7 @@ int	hash_map_replace(
 	void *const			value
 )
 {
-	if (unlikely(!map || !key))
+	if (unlikely(!map || !map->map || !map->capacity || !key))
 		return_error(error_invalid_arg, key, error_invalid_arg);
 
 	return (_hash_map_replace(map, key, value));
@@ -156,7 +159,7 @@ int	hash_map_resize(
 	const ssize_t		size
 )
 {
-	if (unlikely(!map || !size))
+	if (unlikely(!map || !map->map || !map->capacity || size == 0 || size < -1))
 		return_error(error_invalid_arg, NULL, error_invalid_arg);
 
 	return (_hash_map_resize(map, size));

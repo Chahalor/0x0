@@ -4,6 +4,8 @@
 /* ----| Headers    |----- */
 	/* Standard */
 #include <string.h>
+#include <errno.h>
+#include <stdint.h>
 
 	/* Internal */
 #include "_map.h"
@@ -24,16 +26,20 @@ t_hash_map_entry	*_hash_map_entry_new(
 )
 {
 	t_hash_map_entry	*result;
+	size_t			length;
 
-	result = setting->alloc(sizeof(*result) + sizeof(char) * (strlen(key) + 1));
+	length = strlen(key);
+	if (length > SIZE_MAX - sizeof(*result) - 1)
+		return_error(EOVERFLOW, key, NULL);
+	result = setting->alloc(sizeof(*result) + length + 1);
 	if (unlikely(!result))
 	{
-		setting->error.errnum = -errno;
+		setting->error.errnum = errno ? errno : ENOMEM;
 		setting->error.key = key;
 		return (NULL);
 	}
 	result->key = (char *)(result + 1);
-	strcpy(result->key, key);
+	memcpy(result->key, key, length + 1);
 	result->value = NULL;
 	result->next = NULL;
 	result->hash = setting->hash_string(key);
@@ -90,12 +96,14 @@ int	_hash_map_setup(
 	t_hash_map *const	map
 )
 {
-	if (map->map)
-		setting->free(map->map);
+	size_t bytes;
 
-	map->map = setting->alloc(sizeof(t_hash_map_entry *) * map->capacity);
+	bytes = sizeof(t_hash_map_entry *) * map->capacity;
+	map->map = setting->alloc(bytes);
 	if (unlikely(!map->map))
-		return_error(-errno, NULL, -errno);
+		return_error(errno ? errno : ENOMEM, NULL,
+			setting->error.errnum);
+	memset(map->map, 0, bytes);
 
 	return (error_none);
 }
@@ -104,6 +112,12 @@ int	_hash_map_destroy(
 	t_hash_map *const map
 )
 {
+	if (!map->map)
+	{
+		map->capacity = 0;
+		map->length = 0;
+		return (0);
+	}
 	for (size_t i = 0; i < map->capacity; i++)
 	{
 		t_hash_map_entry	*this = map->map[i];
@@ -120,6 +134,10 @@ int	_hash_map_destroy(
 			setting->free(this);
 		} while (next);
 	}
+	setting->free(map->map);
+	map->map = NULL;
+	map->capacity = 0;
+	map->length = 0;
 
 	return (error_none);
 }

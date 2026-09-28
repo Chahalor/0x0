@@ -76,6 +76,7 @@ int	_log_init(
 	_setup_log_file(&data->debug, &config->fd[log_debug]);
 	_setup_log_file(&data->other, &config->fd[log_other]);
 
+	config->display_limit = data->display_limit;
 	config->is_init = 1;
 
 	return (error_none);

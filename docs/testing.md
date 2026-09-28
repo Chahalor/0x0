@@ -18,9 +18,8 @@ are revised.
 
 ## Current suite
 
-The current CMocka contract suite covers the public functions in the four
-`core` modules: allocator, setting, buffer and error. Tests for the other
-Genesis products will be added as their public contracts are stabilized.
+The CMocka contract suite covers the four `core` modules and the reviewed
+`lib` modules: memory, hash map, random, times and log.
 
 Install CMocka development headers and library, Valgrind, and Cppcheck. A C11
 compiler with AddressSanitizer and UndefinedBehaviorSanitizer support is also
@@ -34,14 +33,15 @@ make test
 
 | Target | Check |
 | --- | --- |
-| `test-strict` | Build all core sources and CMocka tests with C11, pedantic warnings, and `-Werror`; run contract tests. |
+| `test-strict` | Build core and reviewed lib sources with C11, pedantic warnings, and `-Werror`; run contract tests. |
 | `test-sanitize` | Run the same tests with AddressSanitizer and UndefinedBehaviorSanitizer. |
 | `test-valgrind` | Run the strict binaries under Memcheck, failing on errors or leaks. |
 | `test-cppcheck` | Analyze all core sources with Cppcheck warnings, style, performance and portability checks. |
 
-`make test-core` is an alias for `test-strict`. To run one contract group, use
-`make test-allocator`, `make test-settings`, `make test-buffer` or
-`make test-errors`.
+`make test-core` runs only the core groups. To run one contract group, use
+`make test-allocator`, `make test-settings`, `make test-buffer`,
+`make test-errors`, `make test-memory`, `make test-memory-bucket`, `make test-hash-map`,
+`make test-utilities` or `make test-log`.
 
 The tests exercise normal results, invalid arguments, error codes, settings
 defaults and validation, allocator ownership, buffer growth and boundary

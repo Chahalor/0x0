@@ -4,6 +4,9 @@
 /* ----| Headers    |----- */
 	/* Standard */
 #include <string.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdint.h>
 
 	/* Internal */
 #include "_map.h"
@@ -27,9 +30,13 @@ int	_hash_map_add(
 {
 	t_hash_map_entry	*new;
 
+	if (_entry_find(map, key))
+		return_error(EEXIST, key, EEXIST);
+	if (map->length == UINT_MAX)
+		return_error(EOVERFLOW, key, EOVERFLOW);
 	new = _hash_map_entry_new(key);
 	if (unlikely(!new))
-		return (-1);
+		return (setting->error.errnum);
 
 	new->value = value;
 	_hash_map_add_entry(map, new);
@@ -111,34 +118,48 @@ int	_hash_map_resize(
 {
 	t_hash_map_entry	**back = map->map;
 	const size_t		old_capacity = map->capacity;
-	const size_t		old_length = map->length;
+	t_hash_map_entry	**new_buckets;
+	size_t			new_capacity;
+	size_t			i;
 
-	map->map = setting->alloc(sizeof(t_hash_map_entry *) * (size));
-	if (unlikely(!map->map))
-		return_error(-errno, NULL, -errno);
-
-	memset(map->map, 0, sizeof(t_hash_map_entry *) * (size));
-	map->capacity = size;
-	map->length = 0;
-	for (size_t i = 0; i < old_capacity; i++)
+	if (size == -1)
+	{
+		if (old_capacity > (SIZE_MAX - 1) / 2)
+			return_error(EOVERFLOW, NULL, EOVERFLOW);
+		new_capacity = old_capacity * 2 + 1;
+	}
+	else
+		new_capacity = (size_t)size;
+	if (new_capacity > SIZE_MAX / sizeof(*new_buckets))
+		return_error(EOVERFLOW, NULL, EOVERFLOW);
+	if (new_capacity == old_capacity)
+		return (0);
+	new_buckets = setting->alloc(sizeof(*new_buckets) * new_capacity);
+	if (!new_buckets)
+		return_error(errno ? errno : ENOMEM, NULL,
+			setting->error.errnum);
+	memset(new_buckets, 0, sizeof(*new_buckets) * new_capacity);
+	i = 0;
+	while (i < old_capacity)
 	{
 		t_hash_map_entry	*this = back[i];
-
-		if (!this)
-			continue ;
 
 		while (this)
 		{
 			t_hash_map_entry *const	next = this->next;
+			size_t pos;
 
-			this->next = NULL;
-			_hash_map_add_entry(map, this);
+			this->hash = setting->hash_string(this->key);
+			pos = this->hash % new_capacity;
+			this->next = new_buckets[pos];
+			new_buckets[pos] = this;
 			this = next;
 		}
+		i++;
 	}
+	map->map = new_buckets;
+	map->capacity = new_capacity;
 	setting->free(back);
-	if (map->length != old_length)
-		return (-1);
 
 	return (error_none);
 }

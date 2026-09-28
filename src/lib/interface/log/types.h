@@ -38,8 +38,6 @@
 
 /* -----| Enums     |----- */
 
-typedef enum e_log_level	t_log_level;	//
-
 /* -----| Unions    |----- */
 	//...
 
@@ -66,6 +64,7 @@ enum e_log_level
 	log_debug,	/**< Debug-level log. */
 	log_other	/**< Fallback level for unknown/other events. */
 };
+typedef enum e_log_level t_log_level;
 
 /**
  * @brief Log-module error code aliases.

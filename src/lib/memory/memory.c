@@ -6,6 +6,7 @@
 	/* Internal */
 #include "_internal_/_memory.h"
 #include "memory.h"
+#include <errno.h>
 	/* External */
 		//...
 
@@ -36,8 +37,9 @@ void	*mem_alloc(
 	int		_error = error_none;
 
 	_error = _mem_manager(mem_manager_access_alloc, &result, _size);
-	if (likely(_error == error_none))
+	if (_error == 0)
 		return (result);
+	errno = _error;
 	return (NULL);
 }
 
@@ -62,8 +64,13 @@ void	*mem_realloc(
 	int		_error = error_none;
 
 	_error = _mem_manager(mem_manager_access_realloc, &result, _ptr, _size);
-	if (likely(_error == error_none))
+	if (_error == 0)
+	{
+		if (_size == 0)
+			errno = 0;
 		return (result);
+	}
+	errno = _error;
 	return (NULL);
 }
 
@@ -87,11 +94,9 @@ void	*mem_dup(
 	void	*result = NULL;
 	int		_error = error_none;
 
-	if (unlikely(!_ptr))
-		_error = _mem_manager(mem_manager_access_alloc, &result, _size);
-	else
-		_error = _mem_manager(mem_manager_access_dup, &result, _ptr, _size);
-	(void)_error;
+	_error = _mem_manager(mem_manager_access_dup, &result, _ptr, _size);
+	if (_error != 0)
+		errno = _error;
 	return (result);
 }
 
@@ -106,10 +111,14 @@ void	*mem_join(
 	void	*result = NULL;
 
 	if (unlikely(!_ptr1 || !_ptr2))
+	{
+		errno = EINVAL;
 		return (NULL);
+	}
 
 	_error = _mem_manager(mem_manager_access_join, &result, _ptr1, _ptr2, _size1, _size2);
-	(void)_error;
+	if (_error != 0)
+		errno = _error;
 
 	return (result);
 }
@@ -131,8 +140,9 @@ void	mem_free(
 {
 	int	_error = error_none;
 
-	_error = _mem_manager(mem_manager_access_free, NULL, &_ptr);
-	(void)_error;
+	_error = _mem_manager(mem_manager_access_free, NULL, _ptr);
+	if (_error != 0)
+		errno = _error;
 }
 
 /**

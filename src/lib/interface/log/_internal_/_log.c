@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 	/* Internal */
 #include "_log.h"
@@ -78,26 +79,42 @@ int	_logs(
 	const bool perr
 )
 {
-	int		_fd_file = _log_config(NULL)->fd[report->level];
-	int		_fd_tty = _log_config(NULL)->display_limit > (int)report->level ? -1 : STDERR_FILENO;
+	int		_fd_file;
+	int		_fd_tty;
 	int		result = error_none;
 	char	*backup = NULL;
+	size_t summary_length;
+	size_t error_length;
+	const char *summary;
+	const char *error_text;
+	char *new_summary;
+	int saved_errno;
+
+	if (!report || report->level < log_error || report->level > log_other)
+		return (EINVAL);
+	_fd_file = _log_config(NULL)->fd[report->level];
+	_fd_tty = _log_config(NULL)->display_limit > (int)report->level ? -1 : STDERR_FILENO;
 
 	if (_fd_tty > 0 && report->level == log_info)
 		_fd_tty = STDOUT_FILENO;
 
 	if (perr)
 	{
-		const int		_errno = errno;
-		const char		*_strerror = strerror(_errno);
-		const size_t	_length = strlen(report->summary) + strlen(_strerror) + 1;
-		char			*_new;
-
-		_new = mem_alloc(sizeof(char) * _length);
-		snprintf(_new, _length, "%s: %s", report->summary, _strerror);
-
+		saved_errno = errno;
+		summary = report->summary ? report->summary : "";
+		error_text = strerror(saved_errno);
+		summary_length = strlen(summary);
+		error_length = strlen(error_text);
+		if (error_length > SIZE_MAX - 3
+			|| summary_length > SIZE_MAX - error_length - 3)
+			return (EOVERFLOW);
+		new_summary = mem_alloc(summary_length + error_length + 3);
+		if (!new_summary)
+			return (errno ? errno : ENOMEM);
+		snprintf(new_summary, summary_length + error_length + 3,
+			"%s: %s", summary, error_text);
 		backup = report->summary;
-		report->summary =_new;
+		report->summary = new_summary;
 	}
 
 	if (atomic_safe)
@@ -105,7 +122,7 @@ int	_logs(
 		if (_fd_file > 0)
 			result = _logs_print_atomic(report, _fd_file);
 
-		if (_fd_file != _fd_tty)
+		if (_fd_tty >= 0 && _fd_file != _fd_tty)
 			result = _logs_print_atomic(report, _fd_tty);
 	}
 	else
@@ -113,11 +130,11 @@ int	_logs(
 		if (_fd_file > 0)
 			result = _logs_print(report, _fd_file, 0);
 
-		if (_fd_file != _fd_tty)
+		if (_fd_tty >= 0 && _fd_file != _fd_tty)
 			result = _logs_print(report, _fd_tty, 0);
 	}
 
-	if (backup)
+	if (perr)
 	{
 		mem_free(report->summary);
 		report->summary = backup;

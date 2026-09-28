@@ -5,6 +5,9 @@
 		//...
 	/* Internal */
 #include "_memory.h"
+#include <errno.h>
+#include <stdint.h>
+#include <string.h>
 	/* External */
 		//...
 
@@ -25,7 +28,17 @@ rb_node	*rb_create_node(
 	size_t size
 )
 {
-	rb_node	*node = calloc(1, sizeof(rb_node) + size);
+	rb_node	*node;
+
+	if (!T || size == 0 || size > SIZE_MAX - sizeof(rb_node))
+	{
+		errno = size == 0 ? EINVAL : EOVERFLOW;
+		return (NULL);
+	}
+
+	node = core_calloc(&T->allocator, 1, sizeof(rb_node) + size);
+	if (!node)
+		return (NULL);
 
 	node->key = (node + 1);
 	node->size = size;
@@ -34,15 +47,31 @@ rb_node	*rb_create_node(
 	return (node);
 }
 
-rb_tree	*rb_init(void)
+rb_tree	*rb_init(const t_genesis_core_allocator *allocator)
 {
-	rb_tree	*T = malloc(sizeof(rb_tree));
-	rb_node	*nil = malloc(sizeof(rb_node));
+	rb_tree	*T;
+	rb_node	*nil;
+
+	if (core_allocator_validate(allocator) != 0)
+	{
+		errno = EINVAL;
+		return (NULL);
+	}
+	T = core_alloc(allocator, sizeof(rb_tree));
+	if (!T)
+		return (NULL);
+	nil = core_calloc(allocator, 1, sizeof(rb_node));
+	if (!nil)
+	{
+		core_free(allocator, T, sizeof(rb_tree));
+		return (NULL);
+	}
 
 	nil->color = BLACK;
-	nil->left = nil->right = nil->parent = NULL;
+	nil->left = nil->right = nil->parent = nil;
 	T->nil = nil;
 	T->root = nil;
+	T->allocator = *allocator;
 	return (T);
 }
 
@@ -157,7 +186,7 @@ void	rb_insert(
 	while (x != T->nil)
 	{
 		y = x;
-		if (z->key < x->key)
+		if ((uintptr_t)z->key < (uintptr_t)x->key)
 			x = x->left;
 		else
 			x = x->right;
@@ -165,7 +194,7 @@ void	rb_insert(
 	z->parent = y;
 	if (y == T->nil)
 		T->root = z;
-	else if (z->key < y->key)
+	else if ((uintptr_t)z->key < (uintptr_t)y->key)
 		y->left = z;
 	else
 		y->right = z;
@@ -182,7 +211,7 @@ rb_node	*rb_search(
 	rb_node	*x = T->root;
 	while (x != T->nil && key != x->key)
 	{
-		if (key < x->key)
+		if ((uintptr_t)key < (uintptr_t)x->key)
 			x = x->left;
 		else
 			x = x->right;
@@ -334,7 +363,7 @@ void	rb_delete(
 	if (y_original_color == BLACK)
 		rb_delete_fixup(T, x);
 	if (_free)
-		free(z);
+		core_free(&T->allocator, z, sizeof(rb_node) + z->size);
 }
 
 // // --- inorder print (debug) ---

@@ -11,6 +11,7 @@
 
 /* -----| Systems   |----- */
 #include <stddef.h>
+#include "core/allocator/allocator.h"
 
 /* -----| Globals   |----- */
 	//...
@@ -96,6 +97,7 @@ struct s_rb_tree
 {
 	rb_node	*root;	// root of the rb tree
 	rb_node	*nil;	// sentinel of the rb tree
+	t_genesis_core_allocator allocator;
 };
 
 
@@ -110,6 +112,7 @@ struct s_mem_manager
 	#if MEM_MANAGER_TYPE == 0
 
 	t_mem_node	*bucket[MEM_BUCKET_SIZE];
+	t_genesis_core_allocator allocator;
 
 	#elif MEM_MANAGER_TYPE == 1
 

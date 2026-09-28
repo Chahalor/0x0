@@ -46,7 +46,7 @@ if (status != 0)
         genesis_strerror(&genesis_buffer_error_module, status));
 ```
 
-Run the core contract suite and its checks with `make test`. The suite uses
+Run the core and reviewed lib contract suites with `make test`. The suite uses
 CMocka, AddressSanitizer, UndefinedBehaviorSanitizer, Valgrind and Cppcheck.
 Individual checks and prerequisites are documented in
 [docs/testing.md](docs/testing.md).

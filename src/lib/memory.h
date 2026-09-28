@@ -39,13 +39,10 @@
 /* ************************************************************************** */
 
 /**
- * @brief	allocate `size` bit of memory using `malloc`
- * 
- * register the allocated memory to the memory manager
- * 
- * @param	size	the memory size to be allocated
- * 
- * @return	the memory allocated or NULL in case of malloc errors or invalid allocation size
+ * @brief Allocate and register a zero-initialized block of bytes.
+ * @param _size Requested byte count; must be nonzero.
+ * @return Owned pointer, or NULL with errno set to EINVAL, EOVERFLOW or ENOMEM.
+ * @note Release the result with mem_free or mem_free_all.
  * 
  * @example	char	*str = mem_alloc(sizeof(char) * strlen(input));
  * 
@@ -56,12 +53,17 @@ void	*mem_alloc(
 			);
 
 /**
- * @brief	reallocate `ptr` to the new size `size`
- * 
- * @param	ptr		the memory area to be reallocated
- * @param	size	the new size of the memory area
- * 
- * @return	the pointer to the new area or NULL in case of allocation error
+ * @brief Resize a registered block, preserving its contents up to the smaller size.
+ * @param _ptr Registered block, or NULL to allocate a new block.
+ * @param _size New byte count. Zero releases a non-NULL block and returns NULL.
+ * @return New owned pointer, or NULL with errno set to EINVAL, EOVERFLOW or
+ * ENOMEM on failure. Failure leaves the original block valid. A foreign
+ * pointer is rejected with EINVAL. Releasing at size zero sets errno to zero.
+ * @par Example
+ * @code{.c}
+ * void *grown = mem_realloc(block, 128);
+ * if (grown) block = grown;
+ * @endcode
  * 
  * @version	1.1.0
 */
@@ -71,11 +73,14 @@ void	*mem_realloc(
 			);
 
 /**
- * @brief	free `ptr` from the memory manager and from the programm scope
- * 
- * @param	ptr	the pointer to be freed
- * 
- * @return	void
+ * @brief Release and unregister a block.
+ * @param _ptr Registered block, or NULL for a no-op. A foreign pointer is
+ * ignored and sets errno to EINVAL.
+ * @return Nothing.
+ * @par Example
+ * @code{.c}
+ * mem_free(block);
+ * @endcode
  * 
  * @version	1.1.0
 */
@@ -84,14 +89,16 @@ void	mem_free(
 			);
 
 /**
- * @brief	duplicate `size` bit from `ptr` to a newly allocated memory area.
- * 
- * if `size` < 0, use the memory manager data to detemine `ptr` allocation size
- * 
- * @param	ptr		the pointer to be duplicated
- * @param	size	the number of bit to be duplicate
- * 
- * @return	a pointer to the new area or NULL in case of error
+ * @brief Copy bytes into a new registered block.
+ * @param _ptr Non-NULL source. It may be a foreign readable block when an
+ * explicit byte count is supplied.
+ * @param _size Positive byte count, or -1 to copy the full registered block.
+ * A count exceeding a registered source block is rejected.
+ * @return New owned block, or NULL with errno set to EINVAL, EOVERFLOW or ENOMEM.
+ * @par Example
+ * @code{.c}
+ * void *copy = mem_dup(block, -1);
+ * @endcode
  * 
  * @version	1.0.0
  */
@@ -101,16 +108,18 @@ void	*mem_dup(
 			);
 
 /**
- * @brief	join `ptr1` and `ptr2` inside one newly allocated memory area
- * 
- * if a size is < 0 the function will use the memory manager data to do the join
- * 
- * @param	ptr1	first ptr to the join
- * @param	ptr2	second ptr to the join
- * @param	size1	size of the first ptr
- * @param	size2	size of the second ptr
- * 
- * @return	a pointer to the new memory area or NULL in case of error
+ * @brief Concatenate bytes from two sources into a new registered block.
+ * @param _ptr1 First non-NULL readable source.
+ * @param _ptr2 Second non-NULL readable source.
+ * @param _size1 Positive byte count, or -1 for the full registered block.
+ * @param _size2 Positive byte count, or -1 for the full registered block.
+ * Counts beyond registered block sizes are rejected; foreign sources require
+ * explicit counts.
+ * @return New owned block, or NULL with errno set to EINVAL, EOVERFLOW or ENOMEM.
+ * @par Example
+ * @code{.c}
+ * void *joined = mem_join(first, second, first_size, second_size);
+ * @endcode
  * 
  * @version	1.0.0
 */
@@ -122,11 +131,14 @@ void	*mem_join(
 			);
 
 /**
- * @brief	free `all` the memory allocated and stored inside of the memory manager
- * 
- * @param	none
- * 
- * @return	void
+ * @brief Release every registered block. Safe to call repeatedly; later
+ * allocations recreate the manager. All previously returned pointers become
+ * invalid.
+ * @return Nothing.
+ * @par Example
+ * @code{.c}
+ * mem_free_all();
+ * @endcode
  * 
  * @version	1.0.0
 */

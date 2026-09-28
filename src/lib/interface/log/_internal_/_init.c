@@ -1,0 +1,83 @@
+/**
+ * @file _init.c
+ * @brief Internal initialization helpers for `interface/log`.
+ */
+
+/* ----| Headers    |----- */
+	/* Standard */
+#include <fcntl.h>
+#include <unistd.h>
+
+	/* Internal */
+#include "_log.h"
+
+	/* External */
+		//...
+
+/* ----| Prototypes |----- */
+	//...
+
+/* ----| Internals  |----- */
+
+/**
+ * @brief Open one log destination or fallback to stderr.
+ *
+ * @param file Public file setup entry.
+ * @param fd   Output descriptor slot.
+ *
+ * @return `error_none` (current implementation always succeeds logically).
+ *
+ * @code{.c}
+ * int fd = -1;
+ * _setup_log_file(&init.error, &fd);
+ * @endcode
+ */
+static int	_setup_log_file(
+	const t_log_file	*const file,
+	int					*const fd
+)
+{
+	if (file->filename)
+		(*fd) = open(file->filename, O_CREAT | O_APPEND | O_RDWR, 0644);
+	else
+		*fd = STDERR_FILENO;
+
+	return (error_none);
+}
+
+/* ----| Public     |----- */
+
+/**
+ * @brief Populate internal config from public initialization data.
+ *
+ * @param config Internal target singleton storage.
+ * @param data Public initialization structure.
+ *
+ * @return `error_invalid_arg` if inputs are invalid.
+ * @return `error_none` otherwise.
+ *
+ * @code{.c}
+ * t_log_internal cfg = {0};
+ * t_log_init init = {.display_limit = log_other};
+ * int rc = _log_init(&cfg, &init);
+ * @endcode
+ */
+int	_log_init(
+	t_log_internal		*const config,
+	const t_log_init	*const data
+)
+{
+	if (unlikely(!data || !config))
+		return (error_invalid_arg);
+
+	_setup_log_file(&data->error, &config->fd[log_error]);
+	_setup_log_file(&data->warning, &config->fd[log_warning]);
+	_setup_log_file(&data->info, &config->fd[log_info]);
+	_setup_log_file(&data->debug, &config->fd[log_debug]);
+	_setup_log_file(&data->other, &config->fd[log_other]);
+
+	config->display_limit = data->display_limit;
+	config->is_init = 1;
+
+	return (error_none);
+}

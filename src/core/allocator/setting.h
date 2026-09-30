@@ -24,7 +24,7 @@
 /**
  * @brief Key for configuring the allocator used by modules.
  * @details Use genesis_settings_set/get with a t_genesis_core_allocator value.
- * An unset key produces the system allocator.
+ * An unset key produces the applied Genesis-wide default allocator.
  * @par Example
  * @code{.c}
  * genesis_settings_set(&settings, &genesis_allocator_setting,

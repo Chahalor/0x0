@@ -105,8 +105,7 @@ void	*core_realloc(
 
 void	core_free(
 	const t_genesis_core_allocator	*const	allocator,
-	void							*const	ptr,
-	const size_t							size
+	void							*const	ptr
 )
 {
 	if (!ptr)
@@ -118,5 +117,5 @@ void	core_free(
 		return;
 	}
 
-	_allocator_free(allocator, ptr, size);
+	_allocator_free(allocator, ptr);
 }

@@ -140,7 +140,7 @@ void	_buffer_deinit(
 	t_genesis_core_buffer	*const	buffer
 )
 {
-	core_free(&buffer->allocator, buffer->bytes, buffer->capacity);
+	core_free(&buffer->allocator, buffer->bytes);
 	*buffer = (t_genesis_core_buffer){0};
 }
 
@@ -174,7 +174,7 @@ t_genesis_core_buffer	*_buffer_new_with_allocator(
 	result = _buffer_init_with_allocator(buffer, capacity, allocator);
 	if (result != 0)
 	{
-		core_free(allocator, buffer, sizeof(*buffer));
+		core_free(allocator, buffer);
 		errno = result;
 		return (NULL);
 	}
@@ -225,7 +225,7 @@ void	_buffer_free(
 
 	allocator = buffer->allocator;
 	_buffer_deinit(buffer);
-	core_free(&allocator, buffer, sizeof(*buffer));
+	core_free(&allocator, buffer);
 }
 
 /** @brief Grow capacity geometrically without changing logical length. */

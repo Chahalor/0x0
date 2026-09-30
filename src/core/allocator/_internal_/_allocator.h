@@ -39,8 +39,7 @@ void					*_allocator_realloc(
 );
 void					_allocator_free(
 	const t_genesis_core_allocator	*const	allocator,
-	void							*const	ptr,
-	const size_t							size
+	void							*const	ptr
 );
 
 #endif

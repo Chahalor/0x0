@@ -3,7 +3,8 @@
 */
 /* ----| Headers    |----- */
 	/* Standard */
-#include "unistd.h"
+#include <unistd.h>
+#include <string.h>
 
 	/* Internal */
 #include "_dotenv.h"
@@ -44,6 +45,13 @@ void	_dotenv_perror(
 	const t_interface_dotenv_error	code
 )
 {
-	write(STDERR_FILENO, msg, strlen(msg));
-	write(STDERR_FILENO, )
+	const char	*description = _dotenv_strerror(code);
+
+	if (msg && *msg)
+	{
+		(void)write(STDERR_FILENO, msg, strlen(msg));
+		(void)write(STDERR_FILENO, ": ", 2);
+	}
+	(void)write(STDERR_FILENO, description, strlen(description));
+	(void)write(STDERR_FILENO, "\n", 1);
 }

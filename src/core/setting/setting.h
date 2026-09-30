@@ -1,8 +1,9 @@
 /**
  * @file setting.h
- * @brief Public configuration interface for Genesis modules.
- * @details Stores typed values through module-owned keys. Existing core
- * settings helpers remain available for direct allocator configuration.
+ * @brief Global Genesis defaults and legacy settings compatibility API.
+ * @details This module owns values shared across Genesis. Module behavior
+ * settings belong to each module. The caller-owned manager below remains
+ * only for existing core consumers during migration.
  */
 #ifndef GENESIS_CORE_SETTING_H
 # define GENESIS_CORE_SETTING_H
@@ -20,12 +21,64 @@
 /* ************************************************************************** */
 
 /* ************************************************************************** */
-/*                                 Prototypes                                 */
+/*                                 Settings                                   */
 /* ************************************************************************** */
 
 /**
- * @brief Create a compatibility settings value using the system allocator.
- * @return Settings value with a malloc-backed allocator.
+ * @brief Mutable public workspace for values shared across Genesis.
+ * @details A zero allocator selects the system allocator. Direct
+ * edits have no effect until apply() succeeds. Synchronize edits and apply
+ * with concurrent module operations.
+ */
+typedef struct s_genesis_global_settings	t_genesis_global_settings;
+
+struct s_genesis_global_settings
+{
+	t_genesis_core_allocator	allocator;
+	int							(*apply)(void);
+};
+
+/**
+ * @brief Public workspace for Genesis-wide defaults.
+ * @details Existing module allocations retain their captured allocator when
+ * this value changes.
+ * @par Example
+ * @code{.c}
+ * genesis_global_settings.allocator = allocator;
+ * genesis_global_settings.apply();
+ * @endcode
+ */
+extern t_genesis_global_settings	genesis_global_settings;
+# define	G_SETTINGS				genesis_global_settings
+
+/**
+ * @brief Validate and publish the public global settings without arguments.
+ * @return 0 or EINVAL for an invalid allocator. Failure preserves the
+ * previously applied global values. A zero descriptor restores the system
+ * allocator. Future internal allocations that read this global value use
+ * the new descriptor; existing allocations keep their original owner.
+ * @par Example
+ * @code{.c}
+ * genesis_global_settings.allocator = allocator;
+ * genesis_global_settings_apply();
+ * @endcode
+ */
+int	genesis_global_settings_apply(void);
+
+/**
+ * @brief Copy the last applied global default allocator.
+ * @return Valid allocator descriptor; the system allocator before the first
+ * apply and after applying a zero descriptor.
+ * @par Example
+ * @code{.c}
+ * t_genesis_core_allocator allocator = genesis_default_allocator();
+ * @endcode
+ */
+t_genesis_core_allocator	genesis_default_allocator(void);
+
+/**
+ * @brief Create a compatibility settings value using the applied global default.
+ * @return Settings value with a captured allocator descriptor.
  * @par Example
  * @code{.c}
  * t_genesis_core_settings settings = core_settings_default();

@@ -20,6 +20,21 @@
 /* ----| Internals  |----- */
 
 /* ----| Public     |----- */
+t_genesis_global_settings	genesis_global_settings = {
+	.allocator = {0},
+	.apply = genesis_global_settings_apply
+};
+
+int	genesis_global_settings_apply(void)
+{
+	return (_settings_global_apply());
+}
+
+t_genesis_core_allocator	genesis_default_allocator(void)
+{
+	return (_settings_global_allocator());
+}
+
 t_genesis_core_settings	core_settings_default(void)
 {
 	return (_settings_default());

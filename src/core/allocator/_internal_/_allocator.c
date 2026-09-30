@@ -14,54 +14,42 @@
 
 /* ----| Prototypes |----- */
 static void	*_system_alloc(
-	void		*const	context,
 	const size_t		size
 );
 static void	*_system_realloc(
-	void		*const	context,
 	void		*const	ptr,
 	const size_t		old_size,
 	const size_t		new_size
 );
 static void	_system_free(
-	void		*const	context,
-	void		*const	ptr,
-	const size_t		size
+	void		*const	ptr
 );
 
 /* ----| Internals  |----- */
-/** @brief Forward allocation to libc; context is unused. */
+/** @brief Forward allocation to libc. */
 static void	*_system_alloc(
-	void		*const	context,
 	const size_t		size
 )
 {
-	(void)context;
 	return (malloc(size));
 }
 
 /** @brief Forward reallocation to libc; size metadata is unused. */
 static void	*_system_realloc(
-	void		*const	context,
 	void		*const	ptr,
 	const size_t		old_size,
 	const size_t		new_size
 )
 {
-	(void)context;
 	(void)old_size;
 	return (realloc(ptr, new_size));
 }
 
-/** @brief Forward deallocation to libc; size metadata is unused. */
+/** @brief Forward deallocation to libc. */
 static void	_system_free(
-	void		*const	context,
-	void		*const	ptr,
-	const size_t		size
+	void		*const	ptr
 )
 {
-	(void)context;
-	(void)size;
 	free(ptr);
 }
 
@@ -69,7 +57,6 @@ static void	_system_free(
 t_genesis_core_allocator	_allocator_system(void)
 {
 	return ((t_genesis_core_allocator){
-		.context = NULL,
 		.alloc = _system_alloc,
 		.realloc = _system_realloc,
 		.free = _system_free
@@ -92,7 +79,7 @@ void	*_allocator_alloc(
 {
 	void	*ptr;
 
-	ptr = allocator->alloc(allocator->context, size);
+	ptr = allocator->alloc(size);
 	if (!ptr)
 		errno = ENOMEM;
 
@@ -130,13 +117,13 @@ void	*_allocator_realloc(
 
 	if (new_size == 0)
 	{
-		_allocator_free(allocator, ptr, old_size);
+		_allocator_free(allocator, ptr);
 		return (NULL);
 	}
 
 	if (allocator->realloc)
 	{
-		replacement = allocator->realloc(allocator->context, ptr,
+		replacement = allocator->realloc(ptr,
 				old_size, new_size);
 		if (!replacement)
 			errno = ENOMEM;
@@ -149,16 +136,15 @@ void	*_allocator_realloc(
 		return (NULL);
 
 	memcpy(replacement, ptr, old_size < new_size ? old_size : new_size);
-	_allocator_free(allocator, ptr, old_size);
+	_allocator_free(allocator, ptr);
 	return (replacement);
 }
 
 /** @brief Dispatch deallocation to the descriptor that owns the pointer. */
 void	_allocator_free(
 	const t_genesis_core_allocator	*const	allocator,
-	void							*const	ptr,
-	const size_t							size
+	void							*const	ptr
 )
 {
-	allocator->free(allocator->context, ptr, size);
+	allocator->free(ptr);
 }

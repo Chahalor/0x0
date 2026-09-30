@@ -9,16 +9,17 @@
 
 	/* External */
 # include "../allocator.h"
+# include "../../setting/setting.h"
 
 /* ----| Prototypes |----- */
 
 /* ----| Internals  |----- */
-/** @brief Write the system allocator into caller-owned output storage. */
+/** @brief Write the applied global default into caller-owned storage. */
 int	_allocator_setting_defaults(
 	void	*const	output
 )
 {
-	*(t_genesis_core_allocator *)output = core_allocator_system();
+	*(t_genesis_core_allocator *)output = genesis_default_allocator();
 	return (0);
 }
 

@@ -64,8 +64,7 @@ void	_manager_deinit(
 	while (entry)
 	{
 		next = entry->next;
-		core_free(&entry->allocator, entry,
-			sizeof(*entry) + entry->key->size);
+		core_free(&entry->allocator, entry);
 		entry = next;
 	}
 
@@ -157,8 +156,7 @@ int	_manager_reset(
 			else
 				settings->entries = entry->next;
 
-			core_free(&entry->allocator, entry,
-				sizeof(*entry) + entry->key->size);
+			core_free(&entry->allocator, entry);
 			return (0);
 		}
 

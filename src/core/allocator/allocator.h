@@ -120,17 +120,15 @@ void	*core_realloc(
  * @brief Release memory with the allocator that created it.
  * @param allocator Descriptor that allocated ptr.
  * @param ptr Pointer to release; NULL is accepted.
- * @param size Size of the allocation in bytes.
  * @return Nothing. Invalid non-NULL requests set errno to EINVAL.
  * @par Example
  * @code{.c}
- * core_free(&allocator, data, 64);
+ * core_free(&allocator, data);
  * @endcode
  */
 void	core_free(
 	const t_genesis_core_allocator	*const	allocator,
-	void							*const	ptr,
-	const size_t							size
+	void							*const	ptr
 );
 
 #endif

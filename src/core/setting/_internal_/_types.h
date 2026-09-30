@@ -17,19 +17,11 @@
 /* ************************************************************************** */
 /*                                 Typedefs                                   */
 /* ************************************************************************** */
-
-typedef struct s_genesis_setting_node	t_genesis_setting_node;
+	//...
 
 /* ************************************************************************** */
 /*                                 Structs                                    */
 /* ************************************************************************** */
-
-struct s_genesis_setting_node
-{
-	const t_genesis_setting_key	*key;
-	t_genesis_setting_node		*next;
-	t_genesis_core_allocator	allocator;
-	unsigned char				value[];
-};
+	//...
 
 #endif

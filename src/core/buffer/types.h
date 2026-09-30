@@ -15,15 +15,18 @@
 # include <stddef.h>
 
 /* -----| Modules   |----- */
-# include "../allocator/types.h"
-# include "../setting/types.h"
+// # include "../setting/types.h"
 
 /* ************************************************************************** */
 /*                                 Typedefs                                   */
 /* ************************************************************************** */
 
+/* -----| Enums     |----- */
+typedef enum e_genesis_core_buffer_error	t_genesis_core_buffer_error;
+typedef enum e_genesis_core_buffer_growth	t_genesis_core_buffer_growth;
+
 /* -----| Structs   |----- */
-typedef struct s_genesis_core_buffer	t_genesis_core_buffer;
+typedef struct s_genesis_core_buffer			t_genesis_core_buffer;
 typedef struct s_genesis_core_buffer_settings	t_genesis_core_buffer_settings;
 
 /* ************************************************************************** */
@@ -36,14 +39,12 @@ enum e_genesis_core_buffer_error
 	BUFFER_ERROR_SOURCE_OUT_OF_RANGE	= 1,
 	BUFFER_ERROR_UNKNOWN				= 2
 };
-typedef enum e_genesis_core_buffer_error	t_genesis_core_buffer_error;
 
 enum e_genesis_core_buffer_growth
 {
 	BUFFER_GROWTH_GEOMETRIC	= 0,
 	BUFFER_GROWTH_EXACT		= 1
 };
-typedef enum e_genesis_core_buffer_growth	t_genesis_core_buffer_growth;
 
 /* ************************************************************************** */
 /*                                 Unions                                     */
@@ -67,11 +68,9 @@ struct s_genesis_core_buffer_settings
  */
 struct s_genesis_core_buffer
 {
-	unsigned char					*bytes;
-	size_t							length;
-	size_t							capacity;
-	t_genesis_core_allocator		allocator;
-	t_genesis_core_buffer_settings	settings;
+	unsigned char	*bytes;
+	size_t			length;
+	size_t			capacity;
 };
 
 #endif

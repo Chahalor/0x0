@@ -11,11 +11,8 @@
 
 	/* Internal */
 # include "_buffer.h"
-# include "_setting.h"
 
 	/* External */
-# include "../../allocator/allocator.h"
-# include "../../allocator/setting.h"
 # include "../error.h"
 # include "../setting.h"
 # include "../../setting/setting.h"
@@ -62,77 +59,23 @@ int	_buffer_is_valid(
 {
 	return (buffer && buffer->length <= buffer->capacity
 		&& (buffer->capacity == 0 || buffer->bytes != NULL)
-		&& _buffer_setting_validate(&buffer->settings) == 0
-		&& core_allocator_validate(&buffer->allocator) == 0);
+	);
 }
 
 /** @brief Initialize storage using the default core settings. */
-int	_buffer_init_default(
+int	_buffer_init(
 	t_genesis_core_buffer	*const	buffer,
 	const size_t					capacity
 )
 {
-	t_genesis_settings	settings;
-	int					result;
+	buffer->bytes = G_SETTINGS.allocator.alloc(capacity);
+	if (!buffer->bytes)
+		return (ENOMEM);
 
-	genesis_settings_init(&settings);
-	result = _buffer_init_with_settings(buffer, capacity, &settings);
-	genesis_settings_deinit(&settings);
-	return (result);
-}
+	buffer->capacity = capacity;
+	buffer->length = 0;
 
-/** @brief Capture an allocator and optionally allocate initial byte storage. */
-int	_buffer_init_with_allocator(
-	t_genesis_core_buffer			*const	buffer,
-	const size_t							capacity,
-	const t_genesis_core_allocator	*const	allocator
-)
-{
-	t_genesis_core_buffer	candidate;
-
-	candidate = (t_genesis_core_buffer){
-		.allocator = *allocator,
-		.settings = _buffer_settings_default()
-	};
-	if (capacity != 0)
-	{
-		candidate.bytes = core_alloc(&candidate.allocator, capacity);
-		if (!candidate.bytes)
-			return (ENOMEM);
-
-		candidate.capacity = capacity;
-	}
-
-	*buffer = candidate;
 	return (0);
-}
-
-/** @brief Resolve the allocator from a shared settings manager. */
-int	_buffer_init_with_settings(
-	t_genesis_core_buffer		*const	buffer,
-	const size_t						capacity,
-	const t_genesis_settings	*const	settings
-)
-{
-	t_genesis_core_allocator		allocator;
-	t_genesis_core_buffer_settings	buffer_settings;
-	int								result;
-
-	result = genesis_settings_get(settings, &genesis_allocator_setting,
-		&allocator, sizeof(allocator));
-	if (result != 0)
-		return (result);
-
-	result = genesis_settings_get(settings, &genesis_buffer_setting,
-		&buffer_settings, sizeof(buffer_settings));
-	if (result != 0)
-		return (result);
-
-	result = _buffer_init_with_allocator(buffer, capacity, &allocator);
-	if (result == 0)
-		buffer->settings = buffer_settings;
-
-	return (result);
 }
 
 /** @brief Release byte storage and reset a caller-owned buffer. */
@@ -140,80 +83,33 @@ void	_buffer_deinit(
 	t_genesis_core_buffer	*const	buffer
 )
 {
-	core_free(&buffer->allocator, buffer->bytes);
-	*buffer = (t_genesis_core_buffer){0};
+	G_SETTINGS.allocator.free(buffer->bytes);
+	buffer->bytes = NULL;
+	buffer->capacity = 0;
 }
 
 /** @brief Allocate a buffer object using default core settings. */
-t_genesis_core_buffer	*_buffer_new_default(
+t_genesis_core_buffer	*_buffer_new(
 	const size_t	capacity
 )
 {
-	t_genesis_settings		settings;
-	t_genesis_core_buffer	*buffer;
+	t_genesis_core_buffer	*result;
 
-	genesis_settings_init(&settings);
-	buffer = _buffer_new_with_settings(capacity, &settings);
-	genesis_settings_deinit(&settings);
-	return (buffer);
-}
-
-/** @brief Allocate the object and its bytes with one allocator. */
-t_genesis_core_buffer	*_buffer_new_with_allocator(
-	const size_t							capacity,
-	const t_genesis_core_allocator	*const	allocator
-)
-{
-	t_genesis_core_buffer	*buffer;
-	int						result;
-
-	buffer = core_alloc(allocator, sizeof(*buffer));
-	if (!buffer)
+	result = G_SETTINGS.allocator.alloc(sizeof(t_genesis_core_buffer));
+	if (!result)
 		return (NULL);
 
-	result = _buffer_init_with_allocator(buffer, capacity, allocator);
-	if (result != 0)
+	result->bytes = G_SETTINGS.allocator.alloc(capacity);
+	if (!result->bytes)
 	{
-		core_free(allocator, buffer);
-		errno = result;
+		G_SETTINGS.allocator.free(result);
 		return (NULL);
 	}
 
-	return (buffer);
-}
+	result->capacity = capacity;
+	result->length = 0;
 
-/** @brief Resolve an allocator and create an owned buffer. */
-t_genesis_core_buffer	*_buffer_new_with_settings(
-	const size_t						capacity,
-	const t_genesis_settings	*const	settings
-)
-{
-	t_genesis_core_allocator		allocator;
-	t_genesis_core_buffer_settings	buffer_settings;
-	t_genesis_core_buffer			*buffer;
-	int								result;
-
-	result = genesis_settings_get(settings, &genesis_allocator_setting,
-		&allocator, sizeof(allocator));
-	if (result != 0)
-	{
-		errno = result > 0 ? result : EINVAL;
-		return (NULL);
-	}
-
-	result = genesis_settings_get(settings, &genesis_buffer_setting,
-		&buffer_settings, sizeof(buffer_settings));
-	if (result != 0)
-	{
-		errno = result > 0 ? result : EINVAL;
-		return (NULL);
-	}
-
-	buffer = _buffer_new_with_allocator(capacity, &allocator);
-	if (buffer)
-		buffer->settings = buffer_settings;
-
-	return (buffer);
+	return (result);
 }
 
 /** @brief Release object and bytes using the captured allocator. */
@@ -221,11 +117,13 @@ void	_buffer_free(
 	t_genesis_core_buffer	*const	buffer
 )
 {
-	t_genesis_core_allocator	allocator;
+	if (!buffer)
+		return ;
 
-	allocator = buffer->allocator;
-	_buffer_deinit(buffer);
-	core_free(&allocator, buffer);
+	if (buffer->bytes)
+		G_SETTINGS.allocator.free(buffer->bytes);
+
+	G_SETTINGS.allocator.free(buffer);
 }
 
 /** @brief Grow capacity geometrically without changing logical length. */
@@ -240,12 +138,13 @@ int	_buffer_reserve(
 	if (min_capacity <= buffer->capacity)
 		return (0);
 
-	if (buffer->settings.growth == BUFFER_GROWTH_EXACT)
+	if (genesis_buffer_setting.growth == BUFFER_GROWTH_EXACT)
 		capacity = min_capacity;
 	else
 	{
-		capacity = buffer->capacity ? buffer->capacity
-			: buffer->settings.initial_capacity;
+		capacity = buffer->capacity
+			? buffer->capacity
+			: genesis_buffer_setting.initial_capacity;
 		while (capacity < min_capacity)
 		{
 			if (capacity > SIZE_MAX / 2)
@@ -258,8 +157,7 @@ int	_buffer_reserve(
 		}
 	}
 
-	bytes = core_realloc(&buffer->allocator, buffer->bytes,
-		buffer->capacity, capacity);
+	bytes = G_SETTINGS.allocator.realloc(buffer->bytes, capacity);
 	if (!bytes)
 		return (ENOMEM);
 
@@ -332,8 +230,7 @@ int	_buffer_append(
 	if (length == 0)
 		return (0);
 
-	source_is_internal = _buffer_source_offset(buffer, data, length,
-		&source_offset);
+	source_is_internal = _buffer_source_offset(buffer, data, length, &source_offset);
 	if (source_is_internal < 0)
 		return (source_is_internal);
 

@@ -29,6 +29,6 @@
  *     &value, sizeof(value));
  * @endcode
  */
-extern const t_genesis_setting_key	genesis_buffer_setting;
+extern const t_genesis_core_buffer_settings	genesis_buffer_setting;
 
 #endif

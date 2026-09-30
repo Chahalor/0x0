@@ -43,41 +43,6 @@ int	core_buffer_init(
 );
 
 /**
- * @brief Initialize a buffer and retain a copy of the chosen allocator.
- * @param buffer Buffer object to initialize.
- * @param capacity Initial byte capacity; zero is accepted.
- * @param allocator Valid allocator that will own byte storage.
- * @return 0, EINVAL, or ENOMEM. On failure, buffer is unchanged.
- * @par Example
- * @code{.c}
- * core_buffer_init_with_allocator(&buffer, 16, &allocator);
- * @endcode
- */
-int	core_buffer_init_with_allocator(
-	t_genesis_core_buffer			*const	buffer,
-	const size_t							capacity,
-	const t_genesis_core_allocator	*const	allocator
-);
-
-/**
- * @brief Initialize a buffer using the manager's allocator setting.
- * @param buffer Uninitialized buffer object.
- * @param capacity Initial byte capacity.
- * @param settings Initialized shared settings manager.
- * @return 0, positive errno, or a setting module error. On failure, buffer
- * is unchanged.
- * @par Example
- * @code{.c}
- * core_buffer_init_with_settings(&buffer, 16, &settings);
- * @endcode
- */
-int	core_buffer_init_with_settings(
-	t_genesis_core_buffer		*const	buffer,
-	const size_t						capacity,
-	const t_genesis_settings	*const	settings
-);
-
-/**
  * @brief Release byte storage and zero a caller-owned buffer.
  * @param buffer Caller-owned buffer successfully initialized by a
  * core_buffer_init variant; NULL is accepted. Do not use on objects created
@@ -103,36 +68,6 @@ void	core_buffer_deinit(
  */
 t_genesis_core_buffer	*core_buffer_new(
 	const size_t	capacity
-);
-
-/**
- * @brief Allocate a buffer object and bytes with a chosen allocator.
- * @param capacity Initial byte capacity; zero is accepted.
- * @param allocator Valid allocator captured by the buffer.
- * @return Owned buffer or NULL; errno is EINVAL or ENOMEM on failure.
- * @par Example
- * @code{.c}
- * t_genesis_core_buffer *buffer = core_buffer_new_with_allocator(16, &a);
- * @endcode
- */
-t_genesis_core_buffer	*core_buffer_new_with_allocator(
-	const size_t							capacity,
-	const t_genesis_core_allocator	*const	allocator
-);
-
-/**
- * @brief Allocate a buffer using the manager's allocator setting.
- * @param capacity Initial byte capacity.
- * @param settings Initialized shared settings manager.
- * @return Owned buffer, or NULL with errno set on failure.
- * @par Example
- * @code{.c}
- * t_genesis_core_buffer *buffer = core_buffer_new_with_settings(16, &settings);
- * @endcode
- */
-t_genesis_core_buffer	*core_buffer_new_with_settings(
-	const size_t						capacity,
-	const t_genesis_settings	*const	settings
 );
 
 /**

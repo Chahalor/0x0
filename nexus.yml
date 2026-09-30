@@ -1,0 +1,36 @@
+schema: nexus.config/v1
+project:
+  name: Genesis
+  default_pipeline: ci
+execution:
+  jobs: 2
+tasks:
+  strict:
+    description: Compile and run the CMocka contract suite with strict C flags.
+    run: [make, test-strict]
+    artifacts:
+      - name: allocator-test
+        path: build/tests/core/allocator
+        required: true
+  sanitize:
+    description: Run the CMocka suite with AddressSanitizer and UBSan.
+    depends_on: [strict]
+    run: [make, test-sanitize]
+    artifacts:
+      - name: allocator-sanitized-test
+        path: build/tests/core/allocator.san
+        required: true
+  valgrind:
+    description: Run the CMocka suite under Valgrind Memcheck.
+    depends_on: [strict]
+    run: [make, test-valgrind]
+  cppcheck:
+    description: Analyze the Genesis sources with Cppcheck.
+    run: [make, test-cppcheck]
+pipelines:
+  quick:
+    description: Strict CMocka contract suite only.
+    targets: [strict]
+  ci:
+    description: CMocka, sanitizers, Valgrind and Cppcheck.
+    targets: [sanitize, valgrind, cppcheck]

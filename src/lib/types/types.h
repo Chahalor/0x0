@@ -43,6 +43,8 @@ typedef struct s_array			t_array;
 typedef struct s_hash_map_entry	t_hash_map_entry;
 typedef struct s_hash_map		t_hash_map;
 
+typedef struct s_genesis_uuid_	UUID;
+
 /* ************************************************************************** */
 /*                                 Enums                                      */
 /* ************************************************************************** */

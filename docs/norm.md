@@ -58,16 +58,27 @@ The diffentes modules should respect the files roles. The public API of each mod
 
 ## Module settings
 
-A configurable module exposes its settings type in `types.h` and a stable
-`t_genesis_setting_key` in its public `setting.h`. The key provides the value
-size and optional default and validation callbacks. Callers use the common
-`genesis_settings_set/get/reset` interface with that key. Set and get calls
-also pass the true size of the supplied value; a mismatch with the key's size
-returns `EINVAL` before any value bytes are accessed. Modules read their
-configuration from a caller-owned `t_genesis_settings` object and copy any
-values that must remain valid after the object changes or is released. A
-module can add a new key without editing the core settings manager. See
-[settings.md](settings.md) for the current API and ownership rules.
+A configurable module exposes in its public `setting.h` a mutable settings
+struct, a global instance, and a no-argument apply function. The struct holds
+an `apply` function pointer to that function. Applications edit the public
+instance and call apply to validate, normalize, and publish
+a complete private runtime configuration. Runtime module code reads only the
+last successfully applied private configuration. Direct public edits have no
+effect, and failed apply calls leave that configuration unchanged.
+Ordinary module operations need no settings argument. Module settings contain
+only algorithm and behavior choices. Ordinary allocated values use lib/memory
+and are released with mem_free; internal opaque structures may capture the
+global allocator for their own release. Existing per-instance
+APIs may retain caller-owned `t_genesis_settings` objects. See
+[settings.md](settings.md) for details.
+
+`core/setting` is responsible only for global values shared across Genesis,
+such as the default allocator. Module-specific public settings, validation,
+application, and private runtime configuration belong to each module. A module
+reads shared values from core/setting when it needs them; module apply only
+publishes module behavior choices.
+The existing caller-owned settings manager remains a compatibility interface
+until its consumers are migrated.
 
 ## Error convention
 

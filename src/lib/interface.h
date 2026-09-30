@@ -22,6 +22,8 @@
 
 /* -----| Modules   |----- */
 #include "interface/log.h"
+#include "interface/format.h"
+#include "interface/format/setting.h"
 #include "interface/args.h"
 
 /* ************************************************************************** */

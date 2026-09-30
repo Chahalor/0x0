@@ -19,9 +19,11 @@ struct fail_allocator
 };
 
 #if MEM_MANAGER_TYPE == 1
-static void *fail_alloc(void *context, size_t size)
+static struct fail_allocator *active_fail_allocator;
+
+static void *fail_alloc(size_t size)
 {
-	struct fail_allocator *stats = context;
+	struct fail_allocator *stats = active_fail_allocator;
 
 	stats->calls++;
 	if (stats->calls == stats->fail_at)
@@ -29,11 +31,10 @@ static void *fail_alloc(void *context, size_t size)
 	return malloc(size);
 }
 
-static void fail_free(void *context, void *ptr, size_t size)
+static void fail_free(void *ptr)
 {
-	struct fail_allocator *stats = context;
+	struct fail_allocator *stats = active_fail_allocator;
 
-	(void)size;
 	stats->releases++;
 	free(ptr);
 }
@@ -41,10 +42,11 @@ static void fail_free(void *context, void *ptr, size_t size)
 static void test_tree_allocation_failures(void **state)
 {
 	struct fail_allocator stats = {0};
-	t_genesis_core_allocator allocator = {&stats, fail_alloc, NULL, fail_free};
+	t_genesis_core_allocator allocator = {fail_alloc, NULL, fail_free};
 	rb_tree *tree;
 
 	(void)state;
+	active_fail_allocator = &stats;
 	stats.fail_at = 1;
 	assert_null(rb_init(&allocator));
 	assert_int_equal(stats.releases, 0);
@@ -57,8 +59,8 @@ static void test_tree_allocation_failures(void **state)
 	stats.fail_at = stats.calls + 1;
 	assert_null(rb_create_node(tree, 8));
 	assert_int_equal(errno, ENOMEM);
-	core_free(&tree->allocator, tree->nil, sizeof(rb_node));
-	core_free(&tree->allocator, tree, sizeof(rb_tree));
+	core_free(&tree->allocator, tree->nil);
+	core_free(&tree->allocator, tree);
 	assert_int_equal(stats.releases, 3);
 }
 #endif

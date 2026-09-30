@@ -17,9 +17,11 @@ struct allocation_stats
 	int fail;
 };
 
-static void *tracked_alloc(void *context, size_t size)
+static struct allocation_stats *active_stats;
+
+static void *tracked_alloc(size_t size)
 {
-	struct allocation_stats *stats = context;
+	struct allocation_stats *stats = active_stats;
 
 	stats->allocations++;
 	if (stats->fail)
@@ -27,19 +29,17 @@ static void *tracked_alloc(void *context, size_t size)
 	return malloc(size);
 }
 
-static void tracked_free(void *context, void *ptr, size_t size)
+static void tracked_free(void *ptr)
 {
-	struct allocation_stats *stats = context;
+	struct allocation_stats *stats = active_stats;
 
-	(void)size;
 	stats->releases++;
 	free(ptr);
 }
 
-static void *failed_realloc(void *context, void *ptr,
+static void *failed_realloc(void *ptr,
 		size_t old_size, size_t new_size)
 {
-	(void)context;
 	(void)ptr;
 	(void)old_size;
 	(void)new_size;
@@ -82,7 +82,7 @@ static void test_alloc_and_array_contracts(void **state)
 	assert_non_null(bytes);
 	memcpy(bytes, "abcd", 4);
 	assert_memory_equal(bytes, "abcd", 4);
-	core_free(&allocator, bytes, 4);
+	core_free(&allocator, bytes);
 	errno = 0;
 	assert_null(core_alloc_array(&allocator, 0, 4));
 	assert_int_equal(errno, EINVAL);
@@ -94,19 +94,20 @@ static void test_alloc_and_array_contracts(void **state)
 	assert_int_equal(errno, EOVERFLOW);
 	bytes = core_alloc_array(&allocator, 2, 4);
 	assert_non_null(bytes);
-	core_free(&allocator, bytes, 8);
+	core_free(&allocator, bytes);
 }
 
 static void test_calloc_and_failure(void **state)
 {
 	struct allocation_stats stats = {0};
 	t_genesis_core_allocator allocator = {
-		.context = &stats, .alloc = tracked_alloc, .free = tracked_free
+		.alloc = tracked_alloc, .free = tracked_free
 	};
 	unsigned char *bytes;
 	size_t index;
 
 	(void)state;
+	active_stats = &stats;
 	errno = 0;
 	assert_null(core_calloc(&allocator, 0, 4));
 	assert_int_equal(errno, EINVAL);
@@ -117,7 +118,7 @@ static void test_calloc_and_failure(void **state)
 	assert_non_null(bytes);
 	for (index = 0; index < 8; index++)
 		assert_int_equal(bytes[index], 0);
-	core_free(&allocator, bytes, 8);
+	core_free(&allocator, bytes);
 	stats.fail = 1;
 	errno = 0;
 	assert_null(core_alloc(&allocator, 2));
@@ -154,12 +155,13 @@ static void test_realloc_fallback_and_preserved_pointer(void **state)
 {
 	struct allocation_stats stats = {0};
 	t_genesis_core_allocator allocator = {
-		.context = &stats, .alloc = tracked_alloc, .free = tracked_free
+		.alloc = tracked_alloc, .free = tracked_free
 	};
 	unsigned char *bytes;
 	unsigned char *grown;
 
 	(void)state;
+	active_stats = &stats;
 	bytes = core_alloc(&allocator, 3);
 	assert_non_null(bytes);
 	memcpy(bytes, "abc", 3);
@@ -172,7 +174,7 @@ static void test_realloc_fallback_and_preserved_pointer(void **state)
 	grown = core_realloc(&allocator, bytes, 3, 8);
 	assert_non_null(grown);
 	assert_memory_equal(grown, "abc", 3);
-	core_free(&allocator, grown, 8);
+	core_free(&allocator, grown);
 	assert_int_equal(stats.allocations, 3);
 	assert_int_equal(stats.releases, 2);
 	allocator.realloc = failed_realloc;
@@ -183,7 +185,7 @@ static void test_realloc_fallback_and_preserved_pointer(void **state)
 	assert_null(core_realloc(&allocator, bytes, 2, 4));
 	assert_int_equal(errno, ENOMEM);
 	assert_memory_equal(bytes, "xy", 2);
-	core_free(&allocator, bytes, 2);
+	core_free(&allocator, bytes);
 }
 
 static void test_free_contracts(void **state)
@@ -192,13 +194,13 @@ static void test_free_contracts(void **state)
 	void *ptr;
 
 	(void)state;
-	core_free(NULL, NULL, 0);
+	core_free(NULL, NULL);
 	ptr = core_alloc(&allocator, 4);
 	assert_non_null(ptr);
 	errno = 0;
-	core_free(NULL, ptr, 4);
+	core_free(NULL, ptr);
 	assert_int_equal(errno, EINVAL);
-	core_free(&allocator, ptr, 4);
+	core_free(&allocator, ptr);
 }
 
 int main(void)

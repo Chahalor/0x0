@@ -104,8 +104,7 @@ int	_mem_unregister_node(
 		return (EINVAL);
 	*link = _node->next;
 	if (_must_free)
-		core_free(&_manager->allocator, _node,
-			sizeof(t_mem_node) + _node->size);
+		core_free(&_manager->allocator, _node);
 	return (mem_manager_error_none);
 }
 
@@ -337,8 +336,7 @@ int	_mem_free_all(
 		while (_current)
 		{
 			_next = _current->next;
-			core_free(&_manager->allocator, _current,
-				sizeof(t_mem_node) + _current->size);
+			core_free(&_manager->allocator, _current);
 			_current = _next;
 		}
 		_manager->bucket[_i] = NULL;
@@ -612,7 +610,7 @@ static void	_mem_free_all_recur(
 
 	_mem_free_all_recur(T, _node->left);
 	_mem_free_all_recur(T, _node->right);
-	core_free(&T->allocator, _node, sizeof(rb_node) + _node->size);
+	core_free(&T->allocator, _node);
 }
 
 /**
@@ -634,8 +632,8 @@ int	_mem_free_all(
 		return (0);
 
 	_mem_free_all_recur(_manager->T, _manager->T->root);
-	core_free(&_manager->T->allocator, _manager->T->nil, sizeof(rb_node));
-	core_free(&_manager->T->allocator, _manager->T, sizeof(rb_tree));
+	core_free(&_manager->T->allocator, _manager->T->nil);
+	core_free(&_manager->T->allocator, _manager->T);
 	_manager->T = NULL;
 	return (error_none);
 }

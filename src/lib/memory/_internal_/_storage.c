@@ -63,7 +63,7 @@ rb_tree	*rb_init(const t_genesis_core_allocator *allocator)
 	nil = core_calloc(allocator, 1, sizeof(rb_node));
 	if (!nil)
 	{
-		core_free(allocator, T, sizeof(rb_tree));
+		core_free(allocator, T);
 		return (NULL);
 	}
 
@@ -363,7 +363,7 @@ void	rb_delete(
 	if (y_original_color == BLACK)
 		rb_delete_fixup(T, x);
 	if (_free)
-		core_free(&T->allocator, z, sizeof(rb_node) + z->size);
+		core_free(&T->allocator, z);
 }
 
 // // --- inorder print (debug) ---

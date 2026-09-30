@@ -1,5 +1,8 @@
 # Genesis - future features
 
+## Memory
+- add some arena functions
+
 ## Files
 - format for any of the file types (json format, yaml format)
 - implemente YAML

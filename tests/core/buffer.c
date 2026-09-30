@@ -10,17 +10,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void *failed_alloc(void *context, size_t size)
+static void *failed_alloc(size_t size)
 {
-	(void)context;
 	(void)size;
 	return NULL;
 }
 
-static void plain_free(void *context, void *ptr, size_t size)
+static void plain_free(void *ptr)
 {
-	(void)context;
-	(void)size;
 	free(ptr);
 }
 
@@ -31,9 +28,11 @@ struct failure_stats
 	size_t fail_at;
 };
 
-static void *fail_after_alloc(void *context, size_t size)
+static struct failure_stats *active_failure;
+
+static void *fail_after_alloc(size_t size)
 {
-	struct failure_stats *stats = context;
+	struct failure_stats *stats = active_failure;
 
 	stats->allocations++;
 	if (stats->allocations == stats->fail_at)
@@ -41,11 +40,10 @@ static void *fail_after_alloc(void *context, size_t size)
 	return malloc(size);
 }
 
-static void fail_after_free(void *context, void *ptr, size_t size)
+static void fail_after_free(void *ptr)
 {
-	struct failure_stats *stats = context;
+	struct failure_stats *stats = active_failure;
 
-	(void)size;
 	stats->releases++;
 	free(ptr);
 }
@@ -55,16 +53,17 @@ struct move_stats
 	size_t moves;
 };
 
-static void *moving_alloc(void *context, size_t size)
+static void *moving_alloc(size_t size)
 {
-	(void)context;
 	return malloc(size);
 }
 
-static void *moving_realloc(void *context, void *ptr,
+static struct move_stats *active_moves;
+
+static void *moving_realloc(void *ptr,
 		size_t old_size, size_t new_size)
 {
-	struct move_stats *stats = context;
+	struct move_stats *stats = active_moves;
 	void *replacement = malloc(new_size);
 
 	if (!replacement)
@@ -122,13 +121,14 @@ static void test_owned_constructors_and_failure(void **state)
 	};
 	struct failure_stats failure = { .fail_at = 2 };
 	t_genesis_core_allocator fail_second = {
-		.context = &failure, .alloc = fail_after_alloc,
+		.alloc = fail_after_alloc,
 		.free = fail_after_free
 	};
 	t_genesis_settings settings;
 	t_genesis_core_buffer *buffer;
 
 	(void)state;
+	active_failure = &failure;
 	buffer = core_buffer_new(0);
 	assert_non_null(buffer);
 	assert_int_equal(buffer->capacity, 0);
@@ -163,13 +163,14 @@ static void test_init_allocation_failure(void **state)
 {
 	struct failure_stats failure = { .fail_at = 1 };
 	t_genesis_core_allocator allocator = {
-		.context = &failure, .alloc = fail_after_alloc,
+		.alloc = fail_after_alloc,
 		.free = fail_after_free
 	};
 	t_genesis_core_buffer buffer = { .length = 123 };
 	t_genesis_settings settings;
 
 	(void)state;
+	active_failure = &failure;
 	assert_int_equal(core_buffer_init_with_allocator(&buffer, 4,
 		&allocator), ENOMEM);
 	assert_null(buffer.bytes);
@@ -275,12 +276,13 @@ static void test_append_from_own_storage(void **state)
 {
 	struct move_stats moves = {0};
 	t_genesis_core_allocator allocator = {
-		.context = &moves, .alloc = moving_alloc,
+		.alloc = moving_alloc,
 		.realloc = moving_realloc, .free = plain_free
 	};
 	t_genesis_core_buffer buffer;
 
 	(void)state;
+	active_moves = &moves;
 	assert_int_equal(core_buffer_init_with_allocator(&buffer, 2,
 		&allocator), 0);
 	assert_int_equal(core_buffer_append(&buffer, "ab", 2), 0);

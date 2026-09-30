@@ -4,6 +4,11 @@ AR         ?= ar
 RM         ?= rm -f
 BUILD_DIR  := build
 TARGET     := $(BUILD_DIR)/lib$(NAME).a
+ARCHIVE_STAGE := $(BUILD_DIR)/archive-objects
+MODULE_DIRS := $(patsubst %/,%,$(dir $(shell find src/core src/standards src/lib -name makefile -print)))
+MODULE_SOURCES := $(foreach dir,$(MODULE_DIRS),$(wildcard \
+	$(dir)/*.c $(dir)/_internal_/*.c $(dir)/_internal_/*/*.c))
+MODULE_OBJECTS := $(patsubst %.c,$(BUILD_DIR)/obj/%.o,$(MODULE_SOURCES))
 
 .DEFAULT_GOAL := all
 
@@ -13,6 +18,8 @@ TEST_SOURCES := $(wildcard src/core/*/*.c src/core/*/_internal_/*.c \
 MEMORY_SOURCES := $(wildcard src/lib/memory/*.c src/lib/memory/_internal_/*.c)
 HASH_MAP_SOURCES := src/lib/types/types.c $(wildcard src/lib/types/_internal_/map/*.c)
 UTILITIES_SOURCES := src/lib/random/random.c src/lib/times/convert.c
+FORMAT_SOURCES := $(wildcard src/lib/interface/format/*.c src/lib/interface/format/_internal_/*.c)
+FORMAT_HEADERS := $(wildcard src/lib/interface/format.h src/lib/interface/format/*.h src/lib/interface/format/_internal_/*.h)
 LOG_SOURCES := src/lib/interface/log/log.c $(wildcard src/lib/interface/log/_internal_/*.c)
 TEST_CFLAGS := -std=c11 -pedantic -Wall -Wextra -Werror -Wstrict-prototypes -g3
 TEST_CPPFLAGS := -Isrc -Isrc/core -Isrc/lib -Isrc/standards $(CMOCKA_CFLAGS)
@@ -34,10 +41,12 @@ UTILITIES_TEST_BIN := $(BUILD_DIR)/tests/lib/utilities
 UTILITIES_SANITIZER_BIN := $(UTILITIES_TEST_BIN).san
 LOG_TEST_BIN := $(BUILD_DIR)/tests/lib/log
 LOG_SANITIZER_BIN := $(LOG_TEST_BIN).san
+FORMAT_TEST_BIN := $(BUILD_DIR)/tests/lib/format
+FORMAT_SANITIZER_BIN := $(FORMAT_TEST_BIN).san
 
 .PHONY: all core standards lib test test-core test-strict test-sanitize \
 	test-valgrind test-cppcheck test-deps test-memory test-memory-bucket test-hash-map \
-	test-utilities test-log \
+	test-utilities test-log test-format test-archive \
 	$(addprefix test-,$(TEST_GROUPS)) \
 	clean fclean re
 
@@ -128,6 +137,14 @@ $(LOG_SANITIZER_BIN): tests/lib/log.c $(LOG_SOURCES) $(MEMORY_SOURCES) $(TEST_SO
 		-Isrc/lib/interface $(TEST_CPPFLAGS) $^ \
 		$(CMOCKA_LIBS) -fsanitize=address,undefined -o $@
 
+$(FORMAT_TEST_BIN): tests/lib/format.c $(FORMAT_SOURCES) $(MEMORY_SOURCES) $(TEST_SOURCES) $(FORMAT_HEADERS) | test-deps
+	@mkdir -p $(dir $@)
+	$(CC) $(TEST_CFLAGS) $(TEST_CPPFLAGS) $(filter %.c,$^) $(CMOCKA_LIBS) -o $@
+
+$(FORMAT_SANITIZER_BIN): tests/lib/format.c $(FORMAT_SOURCES) $(MEMORY_SOURCES) $(TEST_SOURCES) $(FORMAT_HEADERS) | test-deps
+	@mkdir -p $(dir $@)
+	$(CC) $(TEST_CFLAGS) -fno-omit-frame-pointer -fsanitize=address,undefined $(TEST_CPPFLAGS) $(filter %.c,$^) $(CMOCKA_LIBS) -fsanitize=address,undefined -o $@
+
 test-allocator: $(BUILD_DIR)/tests/core/allocator
 	$<
 
@@ -155,16 +172,19 @@ test-utilities: $(UTILITIES_TEST_BIN)
 test-log: $(LOG_TEST_BIN)
 	$<
 
-test-strict: test-allocator test-settings test-buffer test-errors test-memory test-memory-bucket test-hash-map test-utilities test-log
+test-format: $(FORMAT_TEST_BIN)
+	$<
 
-test-sanitize: $(SANITIZER_BINS) $(MEMORY_SANITIZER_BIN) $(MEMORY_BUCKET_SANITIZER_BIN) $(HASH_MAP_SANITIZER_BIN) $(UTILITIES_SANITIZER_BIN) $(LOG_SANITIZER_BIN)
-	@set -e; for binary in $(SANITIZER_BINS) $(MEMORY_SANITIZER_BIN) $(MEMORY_BUCKET_SANITIZER_BIN) $(HASH_MAP_SANITIZER_BIN) $(UTILITIES_SANITIZER_BIN) $(LOG_SANITIZER_BIN); do \
+test-strict: test-allocator test-settings test-buffer test-errors test-memory test-memory-bucket test-hash-map test-utilities test-log test-format
+
+test-sanitize: $(SANITIZER_BINS) $(MEMORY_SANITIZER_BIN) $(MEMORY_BUCKET_SANITIZER_BIN) $(HASH_MAP_SANITIZER_BIN) $(UTILITIES_SANITIZER_BIN) $(LOG_SANITIZER_BIN) $(FORMAT_SANITIZER_BIN)
+	@set -e; for binary in $(SANITIZER_BINS) $(MEMORY_SANITIZER_BIN) $(MEMORY_BUCKET_SANITIZER_BIN) $(HASH_MAP_SANITIZER_BIN) $(UTILITIES_SANITIZER_BIN) $(LOG_SANITIZER_BIN) $(FORMAT_SANITIZER_BIN); do \
 		ASAN_OPTIONS='$(ASAN_OPTIONS)' \
 		UBSAN_OPTIONS='$(UBSAN_OPTIONS)' $$binary; \
 	done
 
-test-valgrind: $(TEST_BINS) $(MEMORY_TEST_BIN) $(MEMORY_BUCKET_TEST_BIN) $(HASH_MAP_TEST_BIN) $(UTILITIES_TEST_BIN) $(LOG_TEST_BIN)
-	@set -e; for binary in $(TEST_BINS) $(MEMORY_TEST_BIN) $(MEMORY_BUCKET_TEST_BIN) $(HASH_MAP_TEST_BIN) $(UTILITIES_TEST_BIN) $(LOG_TEST_BIN); do \
+test-valgrind: $(TEST_BINS) $(MEMORY_TEST_BIN) $(MEMORY_BUCKET_TEST_BIN) $(HASH_MAP_TEST_BIN) $(UTILITIES_TEST_BIN) $(LOG_TEST_BIN) $(FORMAT_TEST_BIN)
+	@set -e; for binary in $(TEST_BINS) $(MEMORY_TEST_BIN) $(MEMORY_BUCKET_TEST_BIN) $(HASH_MAP_TEST_BIN) $(UTILITIES_TEST_BIN) $(LOG_TEST_BIN) $(FORMAT_TEST_BIN); do \
 		$(VALGRIND) --quiet --leak-check=full --show-leak-kinds=all \
 			--errors-for-leak-kinds=all --error-exitcode=1 $$binary; \
 	done
@@ -172,18 +192,29 @@ test-valgrind: $(TEST_BINS) $(MEMORY_TEST_BIN) $(MEMORY_BUCKET_TEST_BIN) $(HASH_
 test-cppcheck:
 	$(CPPCHECK) --enable=warning,style,performance,portability \
 		--error-exitcode=1 --inline-suppr \
-		--suppress=unsignedLessThanZero -Isrc/core src/core
+		--suppress=unsignedLessThanZero -Isrc/core -Isrc src/core src/lib/interface/format
 
 $(TARGET): lib
 	@mkdir -p $(dir $@)
+	@$(RM) -r $(ARCHIVE_STAGE)
+	@mkdir -p $(ARCHIVE_STAGE)
+	@set -e; for object in $(MODULE_OBJECTS); do \
+		name=$$(printf '%s' "$${object#$(BUILD_DIR)/obj/}" | tr / @); \
+		ln -s "$(CURDIR)/$$object" "$(ARCHIVE_STAGE)/$$name"; \
+	done
 	@$(RM) $@
-	@find $(BUILD_DIR)/obj/src -name '*.o' -print0 | xargs -0 -r $(AR) rcs $@
-	@test -f $@ || $(AR) rcs $@
+	$(AR) rcs $@ $(ARCHIVE_STAGE)/*.o
+
+test-archive: $(TARGET)
+	@test $(words $(MODULE_OBJECTS)) -eq $$($(AR) t $(TARGET) | wc -l)
+	@test -z "$$($(AR) t $(TARGET) | sort | uniq -d)"
 
 clean:
 	$(MAKE) -C src/lib clean
 	$(MAKE) -C src/standards clean
 	$(MAKE) -C src/core clean
+	$(RM) -r $(ARCHIVE_STAGE)
+	$(RM) $(TARGET)
 
 fclean: clean
 	$(RM) -r $(BUILD_DIR)

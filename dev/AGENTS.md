@@ -25,13 +25,20 @@ update this file to match it.
 
 ## Configuration, allocation, and errors
 
-- Use the core settings manager for new configurable behavior. A configurable
-  module exports a stable `t_genesis_setting_key`, a typed settings value,
-  defaults, and validation as described in `docs/settings.md`. Do not add a
-  separate global configuration interface for new module settings.
-- Use the selected core allocator for new allocations. Release each allocation
-  with the allocator that created it, and preserve ownership across settings
-  changes. Check size arithmetic for overflow before allocating or copying.
+- A configurable module exposes a public settings struct, global instance,
+  and no-argument apply function. The struct contains an `apply` function
+  pointer. Apply validates and publishes a complete private configuration.
+  Runtime calls read only that private configuration and take no settings
+  argument. See `docs/settings.md`.
+- Keep `core/setting` focused on values shared globally across Genesis, such
+  as the default allocator. Each module owns its public settings, apply logic,
+  and private runtime configuration. Module settings contain only algorithm
+  and behavior choices. Treat the existing caller-owned manager as a
+  compatibility API while migrating its consumers.
+- Use lib/memory for ordinary dynamic values and release them with mem_free.
+  Internal opaque structures may use the applied global allocator; release
+  each allocation with the allocator that created it. Check size arithmetic
+  for overflow before allocating or copying.
 - Follow the shared error convention: `0` means success; positive codes are
   standard `errno` values; negative codes are module-specific. Pointer results
   use `NULL` on failure and set `errno` when applicable.

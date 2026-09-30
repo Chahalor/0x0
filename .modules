@@ -7,7 +7,6 @@ FILE	makefile
 FILE	_internal_/_${NAME}.c
 FILE	_internal_/_${NAME}.h
 FILE	_internal_/_types.h
-DIR		controls
 
 [sub-module]
 FILE	${NAME}.c
@@ -22,4 +21,3 @@ FILE	_internal_/_${NAME}.h
 FILE	_internal_/_types.h
 FILE	_internal_/_memory.c
 FILE	_internal_/_debug.c
-DIR		controls

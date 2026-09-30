@@ -15,19 +15,20 @@ struct allocation_stats
 	size_t releases;
 };
 
-static void *tracked_alloc(void *context, size_t size)
+static struct allocation_stats *active_stats;
+
+static void *tracked_alloc(size_t size)
 {
-	struct allocation_stats *stats = context;
+	struct allocation_stats *stats = active_stats;
 
 	stats->allocations++;
 	return malloc(size);
 }
 
-static void tracked_free(void *context, void *ptr, size_t size)
+static void tracked_free(void *ptr)
 {
-	struct allocation_stats *stats = context;
+	struct allocation_stats *stats = active_stats;
 
-	(void)size;
 	stats->releases++;
 	free(ptr);
 }
@@ -216,7 +217,7 @@ static void test_reset_links_and_allocator_snapshot(void **state)
 {
 	struct allocation_stats stats = {0};
 	t_genesis_core_allocator allocator = {
-		.context = &stats, .alloc = tracked_alloc, .free = tracked_free
+		.alloc = tracked_alloc, .free = tracked_free
 	};
 	t_genesis_settings settings;
 	const t_genesis_setting_key a = { .name = "a", .size = sizeof(int) };
@@ -226,6 +227,7 @@ static void test_reset_links_and_allocator_snapshot(void **state)
 	int value = 5;
 
 	(void)state;
+	active_stats = &stats;
 	assert_int_equal(genesis_settings_init(&settings), 0);
 	assert_int_equal(genesis_settings_set(&settings,
 		&genesis_allocator_setting, &allocator, sizeof(allocator)), 0);
@@ -261,6 +263,51 @@ static void test_size_overflow(void **state)
 	genesis_settings_deinit(&settings);
 }
 
+static void test_applied_global_default_allocator(void **state)
+{
+	struct allocation_stats stats = {0};
+	t_genesis_core_allocator allocator = {
+		.alloc = tracked_alloc, .free = tracked_free
+	};
+	t_genesis_core_allocator selected;
+	t_genesis_settings local;
+	t_genesis_core_settings legacy;
+	t_genesis_core_buffer *buffer;
+
+	(void)state;
+	active_stats = &stats;
+	assert_non_null(genesis_global_settings.apply);
+	selected = genesis_default_allocator();
+	assert_ptr_equal(selected.alloc, core_allocator_system().alloc);
+	genesis_global_settings.allocator = allocator;
+	selected = genesis_default_allocator();
+	assert_ptr_equal(selected.alloc, core_allocator_system().alloc);
+	assert_int_equal(genesis_global_settings.apply(), 0);
+	selected = genesis_default_allocator();
+	assert_ptr_equal(selected.alloc, tracked_alloc);
+	legacy = core_settings_default();
+	assert_ptr_equal(legacy.allocator.alloc, tracked_alloc);
+	assert_int_equal(genesis_settings_init(&local), 0);
+	assert_int_equal(genesis_settings_get(&local, &genesis_allocator_setting,
+		&selected, sizeof(selected)), 0);
+	assert_ptr_equal(selected.alloc, tracked_alloc);
+	buffer = core_buffer_new(1);
+	assert_non_null(buffer);
+	core_buffer_free(buffer);
+	assert_true(stats.allocations > 0);
+	assert_int_equal(stats.allocations, stats.releases);
+	genesis_settings_deinit(&local);
+	genesis_global_settings.allocator.alloc = NULL;
+	assert_int_equal(genesis_global_settings_apply(), EINVAL);
+	selected = genesis_default_allocator();
+	assert_ptr_equal(selected.alloc, tracked_alloc);
+	genesis_global_settings.allocator =
+		(t_genesis_core_allocator){0};
+	assert_int_equal(genesis_global_settings.apply(), 0);
+	selected = genesis_default_allocator();
+	assert_ptr_equal(selected.alloc, core_allocator_system().alloc);
+}
+
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
@@ -269,7 +316,8 @@ int main(void)
 		cmocka_unit_test(test_set_get_reset_and_key_identity),
 		cmocka_unit_test(test_invalid_module_settings_are_atomic),
 		cmocka_unit_test(test_reset_links_and_allocator_snapshot),
-		cmocka_unit_test(test_size_overflow)
+		cmocka_unit_test(test_size_overflow),
+		cmocka_unit_test(test_applied_global_default_allocator)
 	};
 
 	return cmocka_run_group_tests(tests, NULL, NULL);

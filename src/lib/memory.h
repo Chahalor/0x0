@@ -3,9 +3,9 @@
  * @brief API public to the memory manager
  *
  * this module provide many fonction to manager more safely the memory.
- * Internal storage uses the global callbacks from core/setting. A manager
- * keeps its allocator until mem_free_all; its next allocation captures the
- * callbacks currently installed in G_SETTINGS.
+ * Internal storage uses the current global callbacks from core/setting for
+ * each allocation and release. Replace incompatible callbacks only after
+ * releasing live memory.
  *
  * @ingroup memory
  */
@@ -130,38 +130,122 @@ void	mem_manager_rm(
 	void	*const	ptr
 );
 
+/**
+ * @brief Create a fixed-capacity arena owned by the memory manager.
+ * @return Arena with 64 KiB of storage, or NULL with errno ENOMEM or EINVAL.
+ * @par Example
+ * @code{.c}
+ * MEM_ARENA *arena = mem_arena_new();
+ * mem_arena_free(arena);
+ * @endcode
+ */
 MEM_ARENA	*mem_arena_new(void);
 
+/**
+ * @brief Release an arena and all its allocations.
+ * @param arena Arena returned by mem_arena_new(), or NULL for a no-op.
+ * @return Nothing. Allocations and marks become invalid. Unknown arenas set
+ * errno to EINVAL.
+ * @par Example
+ * @code{.c}
+ * mem_arena_free(arena);
+ * @endcode
+ */
 void		mem_arena_free(
 	MEM_ARENA	*const	arena
 );
 
+/**
+ * @brief Invalidate all allocations and marks while retaining storage.
+ * @param arena Live arena, or NULL for a no-op.
+ * @return Nothing. Unknown arenas set errno to EINVAL.
+ * @par Example
+ * @code{.c}
+ * mem_arena_reset(arena);
+ * @endcode
+ */
 void	mem_arena_reset(
 	MEM_ARENA	*const	arena
 );
 
+/**
+ * @brief Allocate zeroed bytes with max_align_t alignment in an arena.
+ * @param arena Live arena; must not be NULL.
+ * @param size Positive byte count.
+ * @return Pointer owned by the arena, or NULL with errno EINVAL for invalid
+ * input, ENOMEM when the fixed capacity is exhausted, or EOVERFLOW.
+ * @note Individual blocks cannot be passed to mem_free().
+ * @par Example
+ * @code{.c}
+ * int *values = mem_arena_alloc(arena, 8 * sizeof(*values));
+ * @endcode
+ */
 void	*mem_arena_alloc(
 	MEM_ARENA	*const	arena,
 	const size_t		size
 );
 
+/**
+ * @brief Copy bytes into a new allocation owned by an arena.
+ * @param arena Live arena; must not be NULL.
+ * @param ptr Readable source; must not be NULL.
+ * @param size Positive byte count, or -1 for the size of a mem_alloc block.
+ * @return Copied bytes, or NULL with errno EINVAL, ENOMEM or EOVERFLOW.
+ * @par Example
+ * @code{.c}
+ * char *copy = mem_arena_dup(arena, source, length);
+ * @endcode
+ */
+void	*mem_arena_dup(
+	MEM_ARENA	*const	arena,
+	void		*const	ptr,
+	const ssize_t		size
+);
+
+/**
+ * @brief Save the current allocation position as an arena-owned mark.
+ * @param arena Live arena; must not be NULL.
+ * @return Opaque mark, or NULL with errno EINVAL, ENOMEM or EOVERFLOW. Marks
+ * live until reset, rewind past them, or arena release.
+ * @par Example
+ * @code{.c}
+ * t_arena_mark mark = mem_arena_mark(arena);
+ * @endcode
+ */
 t_arena_mark	mem_arena_mark(
 	MEM_ARENA	*const	arena
 );
 
+/**
+ * @brief Invalidate only allocations made after a mark from this arena.
+ * @details Earlier allocation bytes and pointers remain intact. Marks created
+ * after the target become invalid. Invalid marks set errno to EINVAL.
+ * @param arena Live arena; must not be NULL.
+ * @param mark Mark previously returned for this arena.
+ * @return Nothing. The target mark remains valid for repeated rewinds.
+ * @par Example
+ * @code{.c}
+ * mem_arena_rewind(arena, mark);
+ * @endcode
+ */
 void	mem_arena_rewind(
 	MEM_ARENA	*const	arena,
 	const t_arena_mark	mark
 );
 
+/**
+ * @brief Release backing storage when the arena is empty.
+ * @param arena Live arena, or NULL for a no-op.
+ * @return Nothing. Live pointers never move; a later allocation restores
+ * storage. Unknown arenas set errno to EINVAL.
+ * @par Example
+ * @code{.c}
+ * mem_arena_reset(arena);
+ * mem_arena_trim(arena);
+ * @endcode
+ */
 void	mem_arena_trim(
 	MEM_ARENA	*const	arena
-);
-
-void	mem_arena_dup(
-	MEM_ARENA	*const	arena,
-	void		*const	ptr,
-	const ssize_t		size
 );
 
 #endif	// GENESIS_MEMORY_H

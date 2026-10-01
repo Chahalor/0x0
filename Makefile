@@ -36,6 +36,10 @@ MEMORY_TEST_BIN := $(BUILD_DIR)/tests/lib/memory
 MEMORY_SANITIZER_BIN := $(MEMORY_TEST_BIN).san
 MEMORY_BUCKET_TEST_BIN := $(BUILD_DIR)/tests/lib/memory.bucket
 MEMORY_BUCKET_SANITIZER_BIN := $(MEMORY_BUCKET_TEST_BIN).san
+MEMORY_ARENA_TEST_BIN := $(BUILD_DIR)/tests/lib/memory_arena
+MEMORY_ARENA_SANITIZER_BIN := $(MEMORY_ARENA_TEST_BIN).san
+MEMORY_ARENA_BUCKET_TEST_BIN := $(BUILD_DIR)/tests/lib/memory_arena.bucket
+MEMORY_ARENA_BUCKET_SANITIZER_BIN := $(MEMORY_ARENA_BUCKET_TEST_BIN).san
 UTILITIES_TEST_BIN := $(BUILD_DIR)/tests/lib/utilities
 UTILITIES_SANITIZER_BIN := $(UTILITIES_TEST_BIN).san
 LOG_TEST_BIN := $(BUILD_DIR)/tests/lib/log
@@ -46,7 +50,7 @@ FORMAT_TEST_BIN := $(BUILD_DIR)/tests/lib/format
 FORMAT_SANITIZER_BIN := $(FORMAT_TEST_BIN).san
 
 .PHONY: all core standards lib test test-core test-strict test-sanitize \
-	test-valgrind test-cppcheck test-deps test-memory test-memory-bucket \
+	test-valgrind test-cppcheck test-deps test-memory test-memory-bucket test-memory-arena test-memory-arena-bucket \
 	test-utilities test-log test-format test-uuid test-archive \
 	$(addprefix test-,$(TEST_GROUPS)) \
 	clean fclean re
@@ -101,6 +105,26 @@ $(MEMORY_BUCKET_TEST_BIN): tests/lib/memory.c $(MEMORY_SOURCES) $(TEST_SOURCES) 
 	$(CC) $(TEST_CFLAGS) -DMEM_MANAGER_TYPE=0 $(TEST_CPPFLAGS) $^ $(CMOCKA_LIBS) -o $@
 
 $(MEMORY_BUCKET_SANITIZER_BIN): tests/lib/memory.c $(MEMORY_SOURCES) $(TEST_SOURCES) | test-deps
+	@mkdir -p $(dir $@)
+	$(CC) $(TEST_CFLAGS) -DMEM_MANAGER_TYPE=0 -fno-omit-frame-pointer \
+		-fsanitize=address,undefined $(TEST_CPPFLAGS) $^ \
+		$(CMOCKA_LIBS) -fsanitize=address,undefined -o $@
+
+$(MEMORY_ARENA_TEST_BIN): tests/lib/memory_arena.c $(MEMORY_SOURCES) $(TEST_SOURCES) | test-deps
+	@mkdir -p $(dir $@)
+	$(CC) $(TEST_CFLAGS) $(TEST_CPPFLAGS) $^ $(CMOCKA_LIBS) -o $@
+
+$(MEMORY_ARENA_SANITIZER_BIN): tests/lib/memory_arena.c $(MEMORY_SOURCES) $(TEST_SOURCES) | test-deps
+	@mkdir -p $(dir $@)
+	$(CC) $(TEST_CFLAGS) -fno-omit-frame-pointer \
+		-fsanitize=address,undefined $(TEST_CPPFLAGS) $^ \
+		$(CMOCKA_LIBS) -fsanitize=address,undefined -o $@
+
+$(MEMORY_ARENA_BUCKET_TEST_BIN): tests/lib/memory_arena.c $(MEMORY_SOURCES) $(TEST_SOURCES) | test-deps
+	@mkdir -p $(dir $@)
+	$(CC) $(TEST_CFLAGS) -DMEM_MANAGER_TYPE=0 $(TEST_CPPFLAGS) $^ $(CMOCKA_LIBS) -o $@
+
+$(MEMORY_ARENA_BUCKET_SANITIZER_BIN): tests/lib/memory_arena.c $(MEMORY_SOURCES) $(TEST_SOURCES) | test-deps
 	@mkdir -p $(dir $@)
 	$(CC) $(TEST_CFLAGS) -DMEM_MANAGER_TYPE=0 -fno-omit-frame-pointer \
 		-fsanitize=address,undefined $(TEST_CPPFLAGS) $^ \
@@ -161,6 +185,12 @@ test-memory: $(MEMORY_TEST_BIN)
 test-memory-bucket: $(MEMORY_BUCKET_TEST_BIN)
 	$<
 
+test-memory-arena: $(MEMORY_ARENA_TEST_BIN)
+	$<
+
+test-memory-arena-bucket: $(MEMORY_ARENA_BUCKET_TEST_BIN)
+	$<
+
 test-utilities: $(UTILITIES_TEST_BIN)
 	$<
 
@@ -173,16 +203,16 @@ test-format: $(FORMAT_TEST_BIN)
 test-uuid: $(UUID_TEST_BIN)
 	$<
 
-test-strict: test-settings test-buffer test-errors test-memory test-memory-bucket test-utilities test-log test-format test-uuid
+test-strict: test-settings test-buffer test-errors test-memory test-memory-bucket test-memory-arena test-memory-arena-bucket test-utilities test-log test-format test-uuid
 
-test-sanitize: $(SANITIZER_BINS) $(MEMORY_SANITIZER_BIN) $(MEMORY_BUCKET_SANITIZER_BIN) $(UTILITIES_SANITIZER_BIN) $(LOG_SANITIZER_BIN) $(FORMAT_SANITIZER_BIN) $(UUID_SANITIZER_BIN)
-	@set -e; for binary in $(SANITIZER_BINS) $(MEMORY_SANITIZER_BIN) $(MEMORY_BUCKET_SANITIZER_BIN) $(UTILITIES_SANITIZER_BIN) $(LOG_SANITIZER_BIN) $(FORMAT_SANITIZER_BIN) $(UUID_SANITIZER_BIN); do \
+test-sanitize: $(SANITIZER_BINS) $(MEMORY_SANITIZER_BIN) $(MEMORY_BUCKET_SANITIZER_BIN) $(MEMORY_ARENA_SANITIZER_BIN) $(MEMORY_ARENA_BUCKET_SANITIZER_BIN) $(UTILITIES_SANITIZER_BIN) $(LOG_SANITIZER_BIN) $(FORMAT_SANITIZER_BIN) $(UUID_SANITIZER_BIN)
+	@set -e; for binary in $(SANITIZER_BINS) $(MEMORY_SANITIZER_BIN) $(MEMORY_BUCKET_SANITIZER_BIN) $(MEMORY_ARENA_SANITIZER_BIN) $(MEMORY_ARENA_BUCKET_SANITIZER_BIN) $(UTILITIES_SANITIZER_BIN) $(LOG_SANITIZER_BIN) $(FORMAT_SANITIZER_BIN) $(UUID_SANITIZER_BIN); do \
 		ASAN_OPTIONS='$(ASAN_OPTIONS)' \
 		UBSAN_OPTIONS='$(UBSAN_OPTIONS)' $$binary; \
 	done
 
-test-valgrind: $(TEST_BINS) $(MEMORY_TEST_BIN) $(MEMORY_BUCKET_TEST_BIN) $(UTILITIES_TEST_BIN) $(LOG_TEST_BIN) $(FORMAT_TEST_BIN) $(UUID_TEST_BIN)
-	@set -e; for binary in $(TEST_BINS) $(MEMORY_TEST_BIN) $(MEMORY_BUCKET_TEST_BIN) $(UTILITIES_TEST_BIN) $(LOG_TEST_BIN) $(FORMAT_TEST_BIN) $(UUID_TEST_BIN); do \
+test-valgrind: $(TEST_BINS) $(MEMORY_TEST_BIN) $(MEMORY_BUCKET_TEST_BIN) $(MEMORY_ARENA_TEST_BIN) $(MEMORY_ARENA_BUCKET_TEST_BIN) $(UTILITIES_TEST_BIN) $(LOG_TEST_BIN) $(FORMAT_TEST_BIN) $(UUID_TEST_BIN)
+	@set -e; for binary in $(TEST_BINS) $(MEMORY_TEST_BIN) $(MEMORY_BUCKET_TEST_BIN) $(MEMORY_ARENA_TEST_BIN) $(MEMORY_ARENA_BUCKET_TEST_BIN) $(UTILITIES_TEST_BIN) $(LOG_TEST_BIN) $(FORMAT_TEST_BIN) $(UUID_TEST_BIN); do \
 		$(VALGRIND) --quiet --leak-check=full --show-leak-kinds=all \
 			--errors-for-leak-kinds=all --error-exitcode=1 $$binary; \
 	done

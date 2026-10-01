@@ -13,6 +13,7 @@
 /* -----| Systems   |----- */
 # include <stddef.h>
 # include <stdint.h>
+# include "../types.h"
 
 /* -----| Globals   |----- */
 # include "core/setting/setting.h"
@@ -38,6 +39,7 @@ typedef struct s_rb_tree		rb_tree;
 #endif	// MEM_MANAGER_TYPE
 
 typedef struct s_mem_manager	t_mem_manager;
+typedef struct s_mem_arena_mark	t_mem_arena_mark;
 
 /* ************************************************************************** */
 /*                                 Enums                                      */
@@ -75,14 +77,24 @@ typedef enum { RED, BLACK } rb_color;
 
 struct s_genesis_memory_arena_
 {
-	unsigned char	*bytes;
-	void			*cursor;
-	size_t			capacity;
+	unsigned char		*bytes;
+	size_t				used;
+	size_t				capacity;
+	t_mem_arena_mark	*marks;
+	t_mem_arena_mark	*retired_marks;
+	MEM_ARENA			*next;
 	struct
 	{
 		unsigned int	nb_block;
 		unsigned int	nb_mark;
 	}	stats;
+};
+
+struct s_mem_arena_mark
+{
+	t_mem_arena_mark	*next;
+	size_t				offset;
+	unsigned int		blocks;
 };
 
 #if MEM_MANAGER_TYPE == 0
@@ -120,6 +132,7 @@ struct s_rb_tree
 
 struct s_mem_manager
 {
+	MEM_ARENA	*arenas;
 	#if MEM_MANAGER_TYPE == 0
 
 	t_mem_node	*bucket[MEM_BUCKET_SIZE];

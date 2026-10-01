@@ -37,6 +37,8 @@ update this file to match it.
   Internal opaque structures may use the current global allocator; release
   each allocation with the allocator that created it. Check size arithmetic
   for overflow before allocating or copying.
+- The memory module reads `G_SETTINGS.allocator` directly for each allocation
+  and release. Do not cache allocator callbacks in its manager or arenas.
 - Follow the shared error convention: `0` means success; positive codes are
   standard `errno` values; negative codes are module-specific. Pointer results
   use `NULL` on failure and set `errno` when applicable.

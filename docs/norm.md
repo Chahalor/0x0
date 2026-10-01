@@ -70,6 +70,8 @@ The module reads the last successfully applied private configuration. Ordinary
 values use `lib/memory` and are released with `mem_free`; internal opaque
 storage may use the global allocator, retaining the matching release callback
 when needed. See [settings.md](settings.md).
+The `memory` module itself reads the current global allocator callbacks
+directly for allocations and releases; it keeps no module-owned copy.
 
 ## Error convention
 

@@ -36,6 +36,11 @@ rb_node	*rb_create_node(
 		return (NULL);
 	}
 
+	if (!G_SETTINGS.allocator.alloc)
+	{
+		errno = EINVAL;
+		return (NULL);
+	}
 	node = G_SETTINGS.allocator.alloc(sizeof(rb_node) + size);
 	if (!node)
 	{
@@ -55,6 +60,12 @@ rb_tree	*rb_init(void)
 {
 	rb_tree	*T;
 	rb_node	*nil;
+
+	if (!G_SETTINGS.allocator.alloc || !G_SETTINGS.allocator.free)
+	{
+		errno = EINVAL;
+		return (NULL);
+	}
 
 	T = G_SETTINGS.allocator.alloc(sizeof(rb_tree));
 	if (!T)

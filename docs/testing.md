@@ -41,12 +41,13 @@ make test
 `make test-core` runs only the core groups. To run one contract group, use
 `make test-settings`, `make test-buffer`,
 `make test-errors`, `make test-memory`, `make test-memory-bucket`,
+`make test-memory-arena`, `make test-memory-arena-bucket`,
 `make test-utilities`, `make test-log`, `make test-format` or `make test-uuid`.
 
 The tests exercise normal results, invalid arguments, error codes, global
 allocator callbacks, buffer growth and boundary behavior. Regression cases
 cover buffer self-append during reallocation, zero-capacity buffers, failed
-initialization, memory allocator ownership across global callback changes,
+initialization, direct memory use of global allocator callbacks,
 and first custom tag registration. Strict compilation guards against
 nonstandard enum forward declarations.
 

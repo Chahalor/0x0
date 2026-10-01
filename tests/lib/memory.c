@@ -43,25 +43,29 @@ static void fail_free(void *ptr)
 static void test_tree_allocation_failures(void **state)
 {
 	struct fail_allocator stats = {0};
+	t_genesis_global_settings saved = G_SETTINGS;
 	rb_tree *tree;
 
 	(void)state;
 	active_fail_allocator = &stats;
+	G_SETTINGS.allocator.alloc = fail_alloc;
+	G_SETTINGS.allocator.free = fail_free;
 	stats.fail_at = 1;
-	assert_null(rb_init(&allocator));
+	assert_null(rb_init());
 	assert_int_equal(stats.releases, 0);
 	stats.fail_at = 3;
-	assert_null(rb_init(&allocator));
+	assert_null(rb_init());
 	assert_int_equal(stats.releases, 1);
 	stats.fail_at = 0;
-	tree = rb_init(&allocator);
+	tree = rb_init();
 	assert_non_null(tree);
 	stats.fail_at = stats.calls + 1;
 	assert_null(rb_create_node(tree, 8));
 	assert_int_equal(errno, ENOMEM);
-	tree->allocator.free(tree->nil);
-	tree->allocator.free(tree);
+	G_SETTINGS.allocator.free(tree->nil);
+	G_SETTINGS.allocator.free(tree);
 	assert_int_equal(stats.releases, 3);
+	G_SETTINGS = saved;
 }
 #endif
 
@@ -114,11 +118,10 @@ static void test_realloc_failure_keeps_old_block(void **state)
 	mem_free(bytes);
 }
 
-static void test_dup_join_and_boundaries(void **state)
+static void test_dup_and_boundaries(void **state)
 {
 	char *bytes;
 	char *copy;
-	char *joined;
 	char foreign[] = "xy";
 
 	(void)state;
@@ -127,29 +130,16 @@ static void test_dup_join_and_boundaries(void **state)
 	copy = mem_dup(bytes, -1);
 	assert_non_null(copy);
 	assert_memory_equal(copy, "ab", 2);
-	joined = mem_join(bytes, foreign, -1, 2);
-	assert_non_null(joined);
-	assert_memory_equal(joined, "abxy", 4);
 	errno = 0;
 	assert_null(mem_dup(bytes, 3));
 	assert_int_equal(errno, EINVAL);
 	errno = 0;
-	assert_null(mem_join(bytes, foreign, 3, 2));
-	assert_int_equal(errno, EINVAL);
-	errno = 0;
 	assert_null(mem_dup(bytes, 0));
 	assert_int_equal(errno, EINVAL);
-	errno = 0;
-	assert_null(mem_join(bytes, foreign, 0, 2));
-	assert_int_equal(errno, EINVAL);
-	mem_free(joined);
 	mem_free(copy);
 	mem_free(bytes);
 	errno = 0;
 	assert_null(mem_dup(foreign, -1));
-	assert_int_equal(errno, EINVAL);
-	errno = 0;
-	assert_null(mem_join(foreign, foreign, -1, 2));
 	assert_int_equal(errno, EINVAL);
 }
 
@@ -169,7 +159,7 @@ static void test_zero_and_reset(void **state)
 	mem_free(bytes);
 	bytes = mem_alloc(4);
 	assert_non_null(bytes);
-	errno = 0;
+	errno = EIO;
 	assert_null(mem_realloc(bytes, 0));
 	assert_int_equal(errno, 0);
 	errno = 0;
@@ -220,23 +210,28 @@ static void global_free(void *ptr)
 	free(ptr);
 }
 
-static void test_global_allocator_owner_survives_change(void **state)
+static void test_global_allocator_is_read_directly(void **state)
 {
 	t_genesis_global_settings old_settings = G_SETTINGS;
 	struct fail_allocator stats = {0};
+	void *earlier;
 	void *bytes;
 
 	(void)state;
 	mem_free_all();
+	earlier = mem_alloc(8);
+	assert_non_null(earlier);
 	active_global_allocator = &stats;
 	G_SETTINGS.allocator.alloc = global_alloc;
 	G_SETTINGS.allocator.free = global_free;
 	bytes = mem_alloc(8);
 	assert_non_null(bytes);
-	G_SETTINGS = old_settings;
 	mem_free(bytes);
-	mem_free_all();
+	assert_true(stats.calls > 0);
 	assert_int_equal(stats.calls, stats.releases);
+	G_SETTINGS = old_settings;
+	mem_free(earlier);
+	mem_free_all();
 }
 
 int main(void)
@@ -245,10 +240,10 @@ int main(void)
 		cmocka_unit_test(test_free_unregisters_and_rejects_unknown),
 		cmocka_unit_test(test_realloc_preserves_data_and_reports_result),
 		cmocka_unit_test(test_realloc_failure_keeps_old_block),
-		cmocka_unit_test(test_dup_join_and_boundaries),
+		cmocka_unit_test(test_dup_and_boundaries),
 		cmocka_unit_test(test_zero_and_reset),
 		cmocka_unit_test(test_many_deletions),
-		cmocka_unit_test(test_global_allocator_owner_survives_change),
+		cmocka_unit_test(test_global_allocator_is_read_directly),
 		#if MEM_MANAGER_TYPE == 1
 		cmocka_unit_test(test_tree_allocation_failures),
 		#endif

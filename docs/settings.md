@@ -13,10 +13,11 @@ G_SETTINGS.allocator.free = custom_free;
 G_SETTINGS.allocator.realloc = custom_realloc;
 ```
 
-Changes take effect directly for future allocations. Set all callbacks before
-using a module and synchronize changes with concurrent operations. `memory`
-keeps the allocation and release callbacks used by its current manager; after
-`mem_free_all`, its next allocation picks up the current global callbacks.
+Changes take effect directly for allocations and releases. Set all callbacks
+before using a module and synchronize changes with concurrent operations.
+`memory` reads `G_SETTINGS.allocator` for every allocation and release; it
+does not store a private copy. Release live memory before switching to
+incompatible callbacks.
 The `format` tag registry records the release callback for each tag and bucket
 array, so previously registered tags remain removable after a callback change.
 Core buffers use the current global callbacks for growth and release; release

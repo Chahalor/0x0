@@ -18,6 +18,34 @@
 
 /* ----| Internals  |----- */
 
+static t_mem_manager	memory_manager = {0};
+
+#if MEM_MANAGER_TYPE == 0
+t_mem_node	*_mem_find_node(const t_mem_manager *manager, const void *ptr);
+#endif
+
+t_mem_manager	*mem_manager_instance_(void)
+{
+	return (&memory_manager);
+}
+
+size_t	mem_manager_size_(const void *ptr)
+{
+	#if MEM_MANAGER_TYPE == 0
+	t_mem_node	*node;
+
+	node = _mem_find_node(&memory_manager, ptr);
+	return (node ? node->size : 0);
+	#else
+	rb_node	*node;
+
+	if (!memory_manager.T || !ptr)
+		return (0);
+	node = rb_search(memory_manager.T, (void *)ptr);
+	return (node ? node->size : 0);
+	#endif
+}
+
 #if MEM_MANAGER_TYPE == 0
 
 int	_hash(
@@ -74,7 +102,7 @@ t_mem_node	*_mem_new_node(
 		errno = size == 0 ? EINVAL : EOVERFLOW;
 		return (NULL);
 	}
-	result = manager->allocator.alloc(size + sizeof(t_mem_node));
+	result = G_SETTINGS.allocator.alloc(size + sizeof(t_mem_node));
 	if (unlikely(!result))
 	{
 		errno = ENOMEM;
@@ -107,7 +135,7 @@ int	_mem_unregister_node(
 		return (EINVAL);
 	*link = _node->next;
 	if (_must_free)
-		manager->allocator.free(_node);
+		G_SETTINGS.allocator.free(_node);
 	return (mem_manager_error_none);
 }
 
@@ -339,13 +367,26 @@ int	mem_free_all__(
 		while (_current)
 		{
 			_next = _current->next;
-			manager->allocator.free(_current);
+			G_SETTINGS.allocator.free(_current);
 			_current = _next;
 		}
 		manager->bucket[_i] = NULL;
 		_i++;
 	}
 	return (mem_manager_error_none);
+}
+
+void	mem_remove__(t_mem_manager *manager, void *ptr)
+{
+	t_mem_node *node;
+
+	node = _mem_find_node(manager, ptr);
+	if (!node)
+	{
+		errno = EINVAL;
+		return ;
+	}
+	(void)_mem_unregister_node(manager, node, 0);
 }
 
 # elif MEM_MANAGER_TYPE == 1
@@ -371,10 +412,13 @@ void	*mem_alloc__(
 	rb_node	*_node = NULL;
 
 	if (size > SIZE_MAX - sizeof(rb_node))
-		return (EOVERFLOW);
+	{
+		errno = EOVERFLOW;
+		return (NULL);
+	}
 	_node = rb_create_node(manager->T, size);
 	if (unlikely(!_node))
-		return (errno ? errno : ENOMEM);
+		return (NULL);
 
 	rb_insert(manager->T, _node);
 	return (_node->key);
@@ -408,16 +452,23 @@ void	*mem_realloc__(
 
 	_node = rb_search(manager->T, ptr);
 	if (!_node)
-		return (ptr);
+	{
+		errno = EINVAL;
+		return (NULL);
+	}
 
 	if (size == 0)
 	{
 		rb_delete(manager->T, _node, 1);
+		errno = 0;
 		return (NULL);
 	}
 
 	if (size > SIZE_MAX - sizeof(rb_node))
+	{
+		errno = EOVERFLOW;
 		return (NULL);
+	}
 
 	_new = rb_create_node(manager->T, size);
 	if (unlikely(!_new))
@@ -454,28 +505,40 @@ void	*mem_dup__(
 	size_t			_copy_size;
 
 	if (!ptr || size < -1 || size == 0)
-		return (EINVAL);
+	{
+		errno = EINVAL;
+		return (NULL);
+	}
 
 	_target = rb_search(manager->T, (void *)ptr);
 	if (size == -1)
 	{
 		if (unlikely(!_target))
+		{
+			errno = EINVAL;
 			return (NULL);
+		}
 		_copy_size = _target->size;
 	}
 	else
 	{
 		if (_target && (size_t)size > _target->size)
+		{
+			errno = EINVAL;
 			return (NULL);
+		}
 		_copy_size = (size_t)size;
 	}
 
 	if (_copy_size > SIZE_MAX - sizeof(rb_node))
+	{
+		errno = EOVERFLOW;
 		return (NULL);
+	}
 
 	_new = rb_create_node(manager->T, _copy_size);
 	if (!_new)
-		return (errno ? errno : ENOMEM);
+		return (NULL);
 
 	memcpy(_new->key, ptr, _copy_size);
 	rb_insert(manager->T, _new);
@@ -595,26 +658,38 @@ void	mem_remove__(
 */
 void	*mem_manager_(
 	const int	_access,
-	void		*ptr,
+	const void	*ptr,
 	size_t		size
 )
 {
-	static t_mem_manager	manager = {0};
-	void					*out;
+	t_mem_manager			*manager = mem_manager_instance_();
+	void					*out = NULL;
+
+	if (_access == mem_manager_access_free_all)
+		mem_arena_release_all_(manager);
+
+	#if MEM_MANAGER_TYPE == 0
+	if (_access != mem_manager_access_free_all
+		&& (!G_SETTINGS.allocator.alloc || !G_SETTINGS.allocator.free))
+	{
+		errno = EINVAL;
+		return (NULL);
+	}
+	#endif
 
 	#if MEM_MANAGER_TYPE == 1
 
-	if (!manager.T && _access != mem_manager_access_free_all && _access != mem_manager_access_free)
+	if (!manager->T && _access != mem_manager_access_free_all && _access != mem_manager_access_free)
 	{
-		manager.T = rb_init();
-		if (!manager.T)
+		manager->T = rb_init();
+		if (!manager->T)
 			return (NULL);
 	}
 
-	if (!manager.T && _access == mem_manager_access_free_all)
+	if (!manager->T && _access == mem_manager_access_free_all)
 		return (NULL);
 
-	if (!manager.T && _access == mem_manager_access_free)
+	if (!manager->T && _access == mem_manager_access_free)
 		return (NULL);
 	
 	#endif
@@ -623,32 +698,52 @@ void	*mem_manager_(
 	{
 		case (mem_manager_access_alloc):
 		{
-			out = mem_alloc__(&manager, size);
+			#if MEM_MANAGER_TYPE == 0
+			int status = mem_alloc__(manager, size, &out);
+			if (status != 0)
+				errno = status;
+			#else
+			out = mem_alloc__(manager, size);
+			#endif
 			break;
 		}
 		case (mem_manager_access_realloc):
 		{
-
-			out = mem_realloc__(&manager, ptr, size);
+			#if MEM_MANAGER_TYPE == 0
+			int status = mem_realloc__(manager, (void *)ptr, size, &out);
+			if (status != 0)
+				errno = status;
+			else if (size == 0)
+				errno = 0;
+			#else
+			out = mem_realloc__(manager, (void *)ptr, size);
+			#endif
 			break;
 		}
 		case (mem_manager_access_dup):
 		{
-			out = mem_dup__(&manager, ptr, size);
+			#if MEM_MANAGER_TYPE == 0
+			int status = mem_dup__(manager, ptr, (ssize_t)size, &out);
+			if (status != 0)
+				errno = status;
+			#else
+			out = mem_dup__(manager, ptr, size);
+			#endif
 			break ;
 		}
 		case (mem_manager_access_remove):
 		{
-			mem_remove__(&manager, ptr);
+			mem_remove__(manager, (void *)ptr);
 			break ;
 		}
 		case (mem_manager_access_free):
 		{
-			out = mem_free__(&manager, ptr);
+			if (mem_free__(manager, (void *)ptr) != 0)
+				errno = EINVAL;
 			break;
 		}
 		case (mem_manager_access_free_all):
-			out = mem_free_all__(&manager);
+			(void)mem_free_all__(manager);
 			break;
 		default:
 			out = NULL;

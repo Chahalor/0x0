@@ -29,20 +29,22 @@ required. Then run:
 make test
 ```
 
-`make test` runs these checks in order:
+`make test` delegates to `tests/Makefile` and runs these checks in order:
 
 | Target | Check |
 | --- | --- |
 | `test-strict` | Build core and reviewed lib sources with C11, pedantic warnings, and `-Werror`; run contract tests. |
 | `test-sanitize` | Run the same tests with AddressSanitizer and UndefinedBehaviorSanitizer. |
 | `test-valgrind` | Run the strict binaries under Memcheck, failing on errors or leaks. |
-| `test-cppcheck` | Analyze all core sources with Cppcheck warnings, style, performance and portability checks. |
+| `test-cppcheck` | Analyze core, format, memory and UUID sources with Cppcheck warnings, style, performance and portability checks. |
 
-`make test-core` runs only the core groups. To run one contract group, use
-`make test-settings`, `make test-buffer`,
-`make test-errors`, `make test-memory`, `make test-memory-bucket`,
-`make test-memory-arena`, `make test-memory-arena-bucket`,
-`make test-utilities`, `make test-log`, `make test-format` or `make test-uuid`.
+`make -C tests test-core` runs only the core groups. To run one contract group,
+use `make -C tests test-settings`, `test-buffer`, `test-errors`,
+`test-memory`, `test-memory-bucket`, `test-memory-arena`,
+`test-memory-arena-bucket`, `test-utilities`, `test-log`, `test-format` or
+`test-uuid` with the same `make -C tests` prefix. Archive integrity is checked
+with `make -C tests test-archive`. The root `make norm` runs Cppcheck through
+`tests/Makefile`.
 
 The tests exercise normal results, invalid arguments, error codes, global
 allocator callbacks, buffer growth and boundary behavior. Regression cases

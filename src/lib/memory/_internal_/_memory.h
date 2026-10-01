@@ -36,7 +36,7 @@
 
 #if MEM_MANAGER_TYPE == 1
 
-rb_tree	*rb_init(const t_genesis_core_allocator *allocator);
+rb_tree	*rb_init(const t_mem_allocator *allocator);
 
 rb_node	*rb_create_node(
 			rb_tree *T,

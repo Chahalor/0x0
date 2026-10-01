@@ -13,7 +13,7 @@
 # include "_format.h"
 
 	/* External */
-# include "../../../../core/allocator/allocator.h"
+
 
 /* ----| State      |----- */
 static t_format_registry	registry;
@@ -28,7 +28,7 @@ static int	format_tag_length(
 	size_t		*length
 );
 static int	format_registry_grow(
-	const t_genesis_core_allocator	*allocator
+	const t_format_allocator	*allocator
 );
 static void	format_tag_free(
 	t_format_tag_entry	*entry
@@ -78,7 +78,7 @@ static int	format_tag_length(
 
 /** @brief Grow buckets without changing tag entries or their allocators. */
 static int	format_registry_grow(
-	const t_genesis_core_allocator	*allocator
+	const t_format_allocator	*allocator
 )
 {
 	t_format_tag_entry	**replacement;
@@ -91,9 +91,12 @@ static int	format_registry_grow(
 		return (EOVERFLOW);
 
 	new_count = registry.bucket_count ? registry.bucket_count * 2 : 16;
-	replacement = core_calloc(allocator, new_count, sizeof(*replacement));
+	if (new_count > SIZE_MAX / sizeof(*replacement))
+		return (EOVERFLOW);
+	replacement = allocator->alloc(new_count * sizeof(*replacement));
 	if (!replacement)
-		return (errno);
+		return (ENOMEM);
+	memset(replacement, 0, new_count * sizeof(*replacement));
 
 	for (index = 0; index < registry.bucket_count; ++index)
 	{
@@ -107,7 +110,8 @@ static int	format_registry_grow(
 		}
 	}
 
-	core_free(&registry.bucket_allocator, registry.buckets);
+	if (registry.buckets)
+		registry.bucket_allocator.free(registry.buckets);
 	registry.buckets = replacement;
 	registry.bucket_count = new_count;
 	registry.bucket_allocator = *allocator;
@@ -119,8 +123,8 @@ static void	format_tag_free(
 	t_format_tag_entry	*entry
 )
 {
-	core_free(&entry->allocator, entry->tag);
-	core_free(&entry->allocator, entry);
+	entry->allocator.free(entry->tag);
+	entry->allocator.free(entry);
 }
 
 /* ----| Public     |----- */
@@ -153,7 +157,7 @@ t_format_callback	format_registry_find(
 int	format_registry_set(
 	const char						*tag,
 	t_format_callback				callback,
-	const t_genesis_core_allocator	*allocator
+	const t_format_allocator	*allocator
 )
 {
 	t_format_tag_entry	*entry;
@@ -181,17 +185,17 @@ int	format_registry_set(
 		}
 	}
 
-	entry = core_alloc(allocator, sizeof(*entry));
+	entry = allocator->alloc(sizeof(*entry));
 	if (!entry)
-		return (errno);
+		return (ENOMEM);
 
 	entry->allocator = *allocator;
 	entry->length = length;
-	entry->tag = core_alloc(allocator, length + 1);
+	entry->tag = allocator->alloc(length + 1);
 	if (!entry->tag)
 	{
-		core_free(allocator, entry);
-		return (errno);
+		allocator->free(entry);
+		return (ENOMEM);
 	}
 	memcpy(entry->tag, tag, length + 1);
 	if (registry.bucket_count == 0
@@ -244,7 +248,7 @@ int	format_registry_remove(
 			--registry.tag_count;
 			if (registry.tag_count == 0)
 			{
-				core_free(&registry.bucket_allocator, registry.buckets);
+				registry.bucket_allocator.free(registry.buckets);
 				registry.buckets = NULL;
 				registry.bucket_count = 0;
 			}

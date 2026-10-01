@@ -10,6 +10,7 @@
 
 #include "memory.h"
 #include "lib/memory/_internal_/_memory.h"
+#include "core/setting/setting.h"
 
 struct fail_allocator
 {
@@ -42,7 +43,7 @@ static void fail_free(void *ptr)
 static void test_tree_allocation_failures(void **state)
 {
 	struct fail_allocator stats = {0};
-	t_genesis_core_allocator allocator = {fail_alloc, NULL, fail_free};
+	t_mem_allocator allocator = {fail_alloc, fail_free};
 	rb_tree *tree;
 
 	(void)state;
@@ -59,8 +60,8 @@ static void test_tree_allocation_failures(void **state)
 	stats.fail_at = stats.calls + 1;
 	assert_null(rb_create_node(tree, 8));
 	assert_int_equal(errno, ENOMEM);
-	core_free(&tree->allocator, tree->nil);
-	core_free(&tree->allocator, tree);
+	tree->allocator.free(tree->nil);
+	tree->allocator.free(tree);
 	assert_int_equal(stats.releases, 3);
 }
 #endif
@@ -206,6 +207,39 @@ static void test_many_deletions(void **state)
 	mem_free_all();
 }
 
+static struct fail_allocator *active_global_allocator;
+
+static void *global_alloc(size_t size)
+{
+	active_global_allocator->calls++;
+	return (malloc(size));
+}
+
+static void global_free(void *ptr)
+{
+	active_global_allocator->releases++;
+	free(ptr);
+}
+
+static void test_global_allocator_owner_survives_change(void **state)
+{
+	t_genesis_global_settings old_settings = G_SETTINGS;
+	struct fail_allocator stats = {0};
+	void *bytes;
+
+	(void)state;
+	mem_free_all();
+	active_global_allocator = &stats;
+	G_SETTINGS.allocator.alloc = global_alloc;
+	G_SETTINGS.allocator.free = global_free;
+	bytes = mem_alloc(8);
+	assert_non_null(bytes);
+	G_SETTINGS = old_settings;
+	mem_free(bytes);
+	mem_free_all();
+	assert_int_equal(stats.calls, stats.releases);
+}
+
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
@@ -215,6 +249,7 @@ int main(void)
 		cmocka_unit_test(test_dup_join_and_boundaries),
 		cmocka_unit_test(test_zero_and_reset),
 		cmocka_unit_test(test_many_deletions),
+		cmocka_unit_test(test_global_allocator_owner_survives_change),
 		#if MEM_MANAGER_TYPE == 1
 		cmocka_unit_test(test_tree_allocation_failures),
 		#endif

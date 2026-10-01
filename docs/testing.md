@@ -18,7 +18,7 @@ are revised.
 
 ## Current suite
 
-The CMocka contract suite covers the four `core` modules and the reviewed
+The CMocka contract suite covers the current `core` modules and the reviewed
 `lib` modules: memory, hash map, random, times and log.
 
 Install CMocka development headers and library, Valgrind, and Cppcheck. A C11
@@ -39,18 +39,16 @@ make test
 | `test-cppcheck` | Analyze all core sources with Cppcheck warnings, style, performance and portability checks. |
 
 `make test-core` runs only the core groups. To run one contract group, use
-`make test-allocator`, `make test-settings`, `make test-buffer`,
+`make test-settings`, `make test-buffer`,
 `make test-errors`, `make test-memory`, `make test-memory-bucket`, `make test-hash-map`,
 `make test-utilities` or `make test-log`.
 
-The tests exercise normal results, invalid arguments, error codes, settings
-defaults and validation, allocator ownership, buffer growth and boundary
-behavior. Regression cases cover buffer self-append during reallocation,
-internal source ranges outside the logical length, and reset of settings
-entries at the head, middle and tail of the list. They also cover a buffer
-remaining unchanged when initialization fails, rejection of incorrectly sized
-settings values, and dispatch through a descriptor from a new module. Strict
-compilation guards against nonstandard enum forward declarations.
+The tests exercise normal results, invalid arguments, error codes, global
+allocator callbacks, buffer growth and boundary behavior. Regression cases
+cover buffer self-append during reallocation, zero-capacity buffers, failed
+initialization, memory allocator ownership across global callback changes,
+and first custom tag registration. Strict compilation guards against
+nonstandard enum forward declarations.
 
 The CMocka flags come from `pkg-config` by default. For local installations,
 override `CMOCKA_CFLAGS` and `CMOCKA_LIBS`; `CPPCHECK` and `VALGRIND` can also

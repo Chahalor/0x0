@@ -1,9 +1,7 @@
 /**
  * @file setting.h
- * @brief Global Genesis defaults and legacy settings compatibility API.
- * @details This module owns values shared across Genesis. Module behavior
- * settings belong to each module. The caller-owned manager below remains
- * only for existing core consumers during migration.
+ * @brief Global allocator callbacks for Genesis.
+ * @details Module behavior settings belong to their modules.
  */
 #ifndef GENESIS_CORE_SETTING_H
 # define GENESIS_CORE_SETTING_H
@@ -14,7 +12,7 @@
 /* ************************************************************************** */
 
 /* -----| Internals |----- */
-// # include "types.h"
+# include <stddef.h>
 
 /* ************************************************************************** */
 /*                                 Macros                                     */
@@ -26,9 +24,8 @@
 
 /**
  * @brief Mutable public workspace for values shared across Genesis.
- * @details A zero allocator selects the system allocator. Direct
- * edits have no effect until apply() succeeds. Synchronize edits and apply
- * with concurrent module operations.
+ * @details The callbacks initially use malloc, free and realloc. Replace
+ * all callbacks together before allocating through Genesis.
  */
 typedef struct s_genesis_global_settings	t_genesis_global_settings;
 
@@ -40,20 +37,20 @@ struct s_genesis_global_settings
 		void	(*free)(void *);
 		void	*(*realloc)(void *, size_t);
 	}	allocator;
-	// int							(*apply)(void);
 };
 
 /**
  * @brief Public workspace for Genesis-wide defaults.
  * 
- * @details Existing module allocations retain their captured allocator when
- * this value changes.
+ * @details Modules read these callbacks directly. Synchronize changes with
+ * operations in other threads; existing allocations need their original free.
  * 
  * @par Example
  * 
  * @code{.c}
- * genesis_global_settings.allocator = allocator;
- * genesis_global_settings.apply();
+ * G_SETTINGS.allocator.alloc = custom_alloc;
+ * G_SETTINGS.allocator.free = custom_free;
+ * G_SETTINGS.allocator.realloc = custom_realloc;
  * @endcode
  */
 extern t_genesis_global_settings	genesis_global_settings;

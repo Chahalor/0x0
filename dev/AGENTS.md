@@ -25,18 +25,16 @@ update this file to match it.
 
 ## Configuration, allocation, and errors
 
-- A configurable module exposes a public settings struct, global instance,
+- A configurable behavior module exposes a public settings struct, global instance,
   and no-argument apply function. The struct contains an `apply` function
   pointer. Apply validates and publishes a complete private configuration.
   Runtime calls read only that private configuration and take no settings
   argument. See `docs/settings.md`.
-- Keep `core/setting` focused on values shared globally across Genesis, such
-  as the default allocator. Each module owns its public settings, apply logic,
-  and private runtime configuration. Module settings contain only algorithm
-  and behavior choices. Treat the existing caller-owned manager as a
-  compatibility API while migrating its consumers.
+- Keep `core/setting` focused on values shared globally across Genesis. Its
+  allocator callbacks take effect directly. Each module owns its public
+  behavior settings, apply logic, and private runtime configuration.
 - Use lib/memory for ordinary dynamic values and release them with mem_free.
-  Internal opaque structures may use the applied global allocator; release
+  Internal opaque structures may use the current global allocator; release
   each allocation with the allocator that created it. Check size arithmetic
   for overflow before allocating or copying.
 - Follow the shared error convention: `0` means success; positive codes are

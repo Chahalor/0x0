@@ -115,8 +115,11 @@ int	_format_set(
 	t_format_callback		callback
 )
 {
-	t_genesis_core_allocator	allocator;
-	allocator = genesis_default_allocator();
+	t_format_allocator	allocator;
+	allocator = (t_format_allocator){G_SETTINGS.allocator.alloc,
+		G_SETTINGS.allocator.free};
+	if (!allocator.alloc || !allocator.free)
+		return (EINVAL);
 
 	return (format_registry_set(tag, callback, &allocator));
 }

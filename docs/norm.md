@@ -56,29 +56,20 @@ A internal part with all the module implementation and logic. none of the code f
 Each module should provide a makefile ready to be included inside the main makefile. Have a clear and documented error handling with publci errors codes and functions to use thems.
 The diffentes modules should respect the files roles. The public API of each module should be in module_name.h, the type exported by this module in types.h and the public implementation of each API functions in module_name.c.
 
-## Module settings
+## Settings and allocation
 
-A configurable module exposes in its public `setting.h` a mutable settings
-struct, a global instance, and a no-argument apply function. The struct holds
-an `apply` function pointer to that function. Applications edit the public
-instance and call apply to validate, normalize, and publish
-a complete private runtime configuration. Runtime module code reads only the
-last successfully applied private configuration. Direct public edits have no
-effect, and failed apply calls leave that configuration unchanged.
-Ordinary module operations need no settings argument. Module settings contain
-only algorithm and behavior choices. Ordinary allocated values use lib/memory
-and are released with mem_free; internal opaque structures may capture the
-global allocator for their own release. Existing per-instance
-APIs may retain caller-owned `t_genesis_settings` objects. See
-[settings.md](settings.md) for details.
+`core/setting` holds values shared by every Genesis module. Its public
+`G_SETTINGS.allocator` has `alloc(size)`, `free(ptr)`, and
+`realloc(ptr, size)` callbacks, initialized to the corresponding libc
+functions. Applications replace these callbacks directly at runtime. There
+is no core settings manager or core allocator module.
 
-`core/setting` is responsible only for global values shared across Genesis,
-such as the default allocator. Module-specific public settings, validation,
-application, and private runtime configuration belong to each module. A module
-reads shared values from core/setting when it needs them; module apply only
-publishes module behavior choices.
-The existing caller-owned settings manager remains a compatibility interface
-until its consumers are migrated.
+A configurable module may expose its own public settings struct, global
+instance, and no-argument `apply` function for algorithm and behavior choices.
+The module reads the last successfully applied private configuration. Ordinary
+values use `lib/memory` and are released with `mem_free`; internal opaque
+storage may use the global allocator, retaining the matching release callback
+when needed. See [settings.md](settings.md).
 
 ## Error convention
 
@@ -174,7 +165,6 @@ struct s_genesis_core_buffer
 	unsigned char				*bytes;
 	size_t						length;
 	size_t						capacity;
-	t_genesis_core_allocator	allocator;
 };
 
 enum e_genesis_core_buffer_enum

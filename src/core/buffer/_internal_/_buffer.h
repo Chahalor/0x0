@@ -22,7 +22,7 @@ int						_buffer_is_valid(
 	const t_genesis_core_buffer	*const	buffer
 );
 
-int						_buffer_init_default(
+int						_buffer_init(
 	t_genesis_core_buffer			*const	buffer,
 	const size_t							capacity
 );
@@ -31,7 +31,7 @@ void					_buffer_deinit(
 	t_genesis_core_buffer			*const	buffer
 );
 
-t_genesis_core_buffer	*_buffer_new_default(
+t_genesis_core_buffer	*_buffer_new(
 	const size_t	capacity
 );
 

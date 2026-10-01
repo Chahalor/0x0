@@ -1,6 +1,6 @@
 /**
  * @file _types.h
- * @brief Private linked entry type for the settings manager.
+ * @brief Reserved private types for core settings.
  * @details Used only inside the core setting module.
  */
 #ifndef GENESIS_CORE_SETTING_INTERNAL_TYPES_H
@@ -12,7 +12,7 @@
 /* ************************************************************************** */
 
 /* -----| Internals |----- */
-# include "../types.h"
+
 
 /* ************************************************************************** */
 /*                                 Typedefs                                   */

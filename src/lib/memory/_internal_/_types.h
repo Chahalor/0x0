@@ -11,7 +11,7 @@
 
 /* -----| Systems   |----- */
 #include <stddef.h>
-#include "core/allocator/allocator.h"
+#include "core/setting/setting.h"
 
 /* -----| Globals   |----- */
 	//...
@@ -37,6 +37,7 @@ typedef struct s_rb_tree		rb_tree;
 #endif	// MEM_MANAGER_TYPE
 
 typedef struct s_mem_manager	t_mem_manager;
+typedef struct s_mem_allocator	t_mem_allocator;
 
 /* ************************************************************************** */
 /*                                 Enums                                      */
@@ -72,6 +73,12 @@ typedef enum { RED, BLACK } rb_color;
 /*                                 Structs                                    */
 /* ************************************************************************** */
 
+struct s_mem_allocator
+{
+	void *(*alloc)(size_t);
+	void (*free)(void *);
+};
+
 #if MEM_MANAGER_TYPE == 0
 
 struct s_mem_node
@@ -97,7 +104,7 @@ struct s_rb_tree
 {
 	rb_node	*root;	// root of the rb tree
 	rb_node	*nil;	// sentinel of the rb tree
-	t_genesis_core_allocator allocator;
+	t_mem_allocator allocator;
 };
 
 
@@ -112,7 +119,7 @@ struct s_mem_manager
 	#if MEM_MANAGER_TYPE == 0
 
 	t_mem_node	*bucket[MEM_BUCKET_SIZE];
-	t_genesis_core_allocator allocator;
+	t_mem_allocator allocator;
 
 	#elif MEM_MANAGER_TYPE == 1
 

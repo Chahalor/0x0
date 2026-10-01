@@ -68,10 +68,21 @@ int	_buffer_init(
 	const size_t					capacity
 )
 {
-	buffer->bytes = G_SETTINGS.allocator.alloc(capacity);
-	if (!buffer->bytes)
+	unsigned char	*bytes;
+
+	if (capacity == 0)
+	{
+		*buffer = (t_genesis_core_buffer){0};
+		return (0);
+	}
+	if (!G_SETTINGS.allocator.alloc || !G_SETTINGS.allocator.free)
+		return (EINVAL);
+
+	bytes = G_SETTINGS.allocator.alloc(capacity);
+	if (!bytes)
 		return (ENOMEM);
 
+	buffer->bytes = bytes;
 	buffer->capacity = capacity;
 	buffer->length = 0;
 
@@ -83,36 +94,42 @@ void	_buffer_deinit(
 	t_genesis_core_buffer	*const	buffer
 )
 {
-	G_SETTINGS.allocator.free(buffer->bytes);
-	buffer->bytes = NULL;
-	buffer->capacity = 0;
+	if (buffer->bytes)
+		G_SETTINGS.allocator.free(buffer->bytes);
+	*buffer = (t_genesis_core_buffer){0};
 }
 
-/** @brief Allocate a buffer object using default core settings. */
+/** @brief Allocate a buffer object using the current global callbacks. */
 t_genesis_core_buffer	*_buffer_new(
 	const size_t	capacity
 )
 {
 	t_genesis_core_buffer	*result;
 
+	if (!G_SETTINGS.allocator.alloc || !G_SETTINGS.allocator.free)
+	{
+		errno = EINVAL;
+		return (NULL);
+	}
 	result = G_SETTINGS.allocator.alloc(sizeof(t_genesis_core_buffer));
 	if (!result)
-		return (NULL);
-
-	result->bytes = G_SETTINGS.allocator.alloc(capacity);
-	if (!result->bytes)
 	{
-		G_SETTINGS.allocator.free(result);
+		errno = ENOMEM;
 		return (NULL);
 	}
 
-	result->capacity = capacity;
-	result->length = 0;
+	*result = (t_genesis_core_buffer){0};
+	if (capacity != 0 && _buffer_init(result, capacity) != 0)
+	{
+		G_SETTINGS.allocator.free(result);
+		errno = ENOMEM;
+		return (NULL);
+	}
 
 	return (result);
 }
 
-/** @brief Release object and bytes using the captured allocator. */
+/** @brief Release object and bytes using the current global callback. */
 void	_buffer_free(
 	t_genesis_core_buffer	*const	buffer
 )
@@ -157,6 +174,8 @@ int	_buffer_reserve(
 		}
 	}
 
+	if (!G_SETTINGS.allocator.realloc)
+		return (EINVAL);
 	bytes = G_SETTINGS.allocator.realloc(buffer->bytes, capacity);
 	if (!bytes)
 		return (ENOMEM);

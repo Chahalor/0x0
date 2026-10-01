@@ -1,7 +1,7 @@
 /**
  * @file types.h
  * @brief Public byte buffer type for Genesis core.
- * @details The buffer owns its bytes and retains its allocator descriptor.
+ * @details The buffer owns its bytes.
  */
 #ifndef GENESIS_CORE_BUFFER_TYPES_H
 # define GENESIS_CORE_BUFFER_TYPES_H
@@ -22,8 +22,6 @@
 /* ************************************************************************** */
 
 /* -----| Enums     |----- */
-typedef enum e_genesis_core_buffer_error	t_genesis_core_buffer_error;
-typedef enum e_genesis_core_buffer_growth	t_genesis_core_buffer_growth;
 
 /* -----| Structs   |----- */
 typedef struct s_genesis_core_buffer			t_genesis_core_buffer;
@@ -46,6 +44,9 @@ enum e_genesis_core_buffer_growth
 	BUFFER_GROWTH_EXACT		= 1
 };
 
+typedef enum e_genesis_core_buffer_error	t_genesis_core_buffer_error;
+typedef enum e_genesis_core_buffer_growth	t_genesis_core_buffer_growth;
+
 /* ************************************************************************** */
 /*                                 Unions                                     */
 /* ************************************************************************** */
@@ -64,7 +65,8 @@ struct s_genesis_core_buffer_settings
 /**
  * @brief Owned byte storage with an explicit logical length.
  * @details Fields are readable but must only be changed by the buffer API.
- * The allocator and growth policy are captured at initialization.
+ * Growth uses the current global allocator callbacks. Release buffers before
+ * changing those callbacks.
  */
 struct s_genesis_core_buffer
 {

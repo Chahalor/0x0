@@ -20,9 +20,7 @@
 	/* External */
 # include <cmocka.h>
 # include "interface/format.h"
-# include "core/allocator/allocator.h"
 # include "core/setting/setting.h"
-# include "core/allocator/setting.h"
 # include "interface/format/setting.h"
 # include "interface/format/error.h"
 # include "core/error/error.h"
@@ -101,6 +99,19 @@ static void	tags(
 	errno = 0;
 	assert_null(genesis_format("%{ITEM}", (void *)"value"));
 	assert_int_equal(errno, EINVAL);
+}
+static void	test_first_tag_after_empty_registry(void **state)
+{
+	char *result;
+
+	(void)state;
+	assert_int_equal(genesis_format_set("FIRST", custom), 0);
+	result = genesis_format("%{FIRST:ok}", (void *)"value");
+	assert_string_equal(result, "value:ok");
+	mem_free(result);
+	assert_int_equal(genesis_format_rm("FIRST"), 0);
+	assert_int_equal(genesis_format_set("FIRST", custom), 0);
+	assert_int_equal(genesis_format_rm("FIRST"), 0);
 }
 static void	errors(
 	void **state
@@ -188,12 +199,10 @@ static void	*count_alloc(
 }
 static void	*count_realloc(
 	void *ptr,
-	size_t old_size,
 	size_t new_size
 )
 {
 	t_counting_allocator *counter = active_counter;
-	(void)old_size;
 	if (!ptr)
 		++counter->allocations;
 	return (realloc(ptr, new_size));
@@ -241,16 +250,15 @@ static void	settings_contract(void **state)
 static void	test_global_allocator_is_global(void **state)
 {
 	t_counting_allocator counter = {0};
-	t_genesis_core_allocator allocator = {
+	t_genesis_global_settings settings = {.allocator = {
 		.alloc = count_alloc, .realloc = count_realloc, .free = count_free
-	};
+	}};
 	char *result;
 	size_t allocations;
 
 	(void)state;
 	active_counter = &counter;
-	genesis_global_settings.allocator = allocator;
-	assert_int_equal(genesis_global_settings.apply(), 0);
+	G_SETTINGS = settings;
 	assert_int_equal(genesis_format_set("GLOBAL", custom), 0);
 	assert_true(counter.allocations > 0);
 	allocations = counter.allocations;
@@ -258,9 +266,9 @@ static void	test_global_allocator_is_global(void **state)
 	assert_string_equal(result, "value:x");
 	mem_free(result);
 	assert_int_equal(counter.allocations, allocations);
-	genesis_global_settings.allocator =
-		(t_genesis_core_allocator){0};
-	assert_int_equal(genesis_global_settings.apply(), 0);
+	G_SETTINGS = (t_genesis_global_settings){
+		.allocator = {.alloc = malloc, .free = free, .realloc = realloc}
+	};
 	assert_int_equal(genesis_format_rm("GLOBAL"), 0);
 	assert_int_equal(counter.allocations, counter.frees);
 }
@@ -381,21 +389,20 @@ static void	*fail_alloc(
 
 static void	test_allocator_failure(void **state)
 {
-	t_genesis_core_allocator allocator = {
+	t_genesis_global_settings settings = {.allocator = {
 		.alloc = fail_alloc, .free = count_free
-	};
+	}};
 	char *result;
 
 	(void)state;
-	genesis_global_settings.allocator = allocator;
-	assert_int_equal(genesis_global_settings.apply(), 0);
+	G_SETTINGS = settings;
 	assert_int_equal(genesis_format_set("FAIL_NEW", custom), ENOMEM);
 	result = genesis_format("hello");
 	assert_string_equal(result, "hello");
 	mem_free(result);
-	genesis_global_settings.allocator =
-		(t_genesis_core_allocator){0};
-	assert_int_equal(genesis_global_settings.apply(), 0);
+	G_SETTINGS = (t_genesis_global_settings){
+		.allocator = {.alloc = malloc, .free = free, .realloc = realloc}
+	};
 	assert_int_equal(genesis_format_rm("FAIL_NEW"),
 		-FORMAT_ERROR_UNKNOWN_TAG);
 }
@@ -528,36 +535,34 @@ static void	fail_after_free(
 static void	test_registry_allocation_failures(void **state)
 {
 	t_fail_after_allocator counter = {0};
-	t_genesis_core_allocator allocator = {
+	t_genesis_global_settings settings = {.allocator = {
 		.alloc = fail_after_alloc,
 		.realloc = NULL, .free = fail_after_free
-	};
+	}};
 	char *result;
 
 	(void)state;
 	active_fail_after = &counter;
 	assert_int_equal(genesis_format_set("BASE", replacement), 0);
-	genesis_global_settings.allocator = allocator;
-	assert_int_equal(genesis_global_settings.apply(), 0);
+	G_SETTINGS = settings;
 	counter.limit = 1;
 	assert_int_equal(genesis_format_set("PARTIAL", replacement), ENOMEM);
 	assert_int_equal(counter.successes, counter.frees);
-	genesis_global_settings.allocator =
-		(t_genesis_core_allocator){0};
-	assert_int_equal(genesis_global_settings.apply(), 0);
+	G_SETTINGS = (t_genesis_global_settings){
+		.allocator = {.alloc = malloc, .free = free, .realloc = realloc}
+	};
 	result = genesis_format("%{BASE}", (void *)"ignored");
 	assert_string_equal(result, "new");
 	mem_free(result);
 	assert_int_equal(genesis_format_rm("BASE"), 0);
-	genesis_global_settings.allocator = allocator;
-	assert_int_equal(genesis_global_settings.apply(), 0);
+	G_SETTINGS = settings;
 	counter.attempts = 0;
 	counter.limit = 2;
 	assert_int_equal(genesis_format_set("PARTIAL", replacement), ENOMEM);
 	assert_int_equal(counter.successes, counter.frees);
-	genesis_global_settings.allocator =
-		(t_genesis_core_allocator){0};
-	assert_int_equal(genesis_global_settings.apply(), 0);
+	G_SETTINGS = (t_genesis_global_settings){
+		.allocator = {.alloc = malloc, .free = free, .realloc = realloc}
+	};
 	assert_int_equal(genesis_format_rm("PARTIAL"),
 		-FORMAT_ERROR_UNKNOWN_TAG);
 }
@@ -568,6 +573,7 @@ int	main(void)
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(basics),
 		cmocka_unit_test(fixed),
+		cmocka_unit_test(test_first_tag_after_empty_registry),
 		cmocka_unit_test(tags),
 		cmocka_unit_test(errors),
 		cmocka_unit_test(floats_and_n),

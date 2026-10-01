@@ -3,6 +3,9 @@
  * @brief API public to the memory manager
  *
  * this module provide many fonction to manager more safely the memory.
+ * Internal storage uses the global callbacks from core/setting. A manager
+ * keeps its allocator until mem_free_all; its next allocation captures the
+ * callbacks currently installed in G_SETTINGS.
  *
  * @ingroup memory
  */

@@ -36,9 +36,13 @@ rb_node	*rb_create_node(
 		return (NULL);
 	}
 
-	node = core_calloc(&T->allocator, 1, sizeof(rb_node) + size);
+	node = T->allocator.alloc(sizeof(rb_node) + size);
 	if (!node)
+	{
+		errno = ENOMEM;
 		return (NULL);
+	}
+	memset(node, 0, sizeof(rb_node) + size);
 
 	node->key = (node + 1);
 	node->size = size;
@@ -47,26 +51,31 @@ rb_node	*rb_create_node(
 	return (node);
 }
 
-rb_tree	*rb_init(const t_genesis_core_allocator *allocator)
+rb_tree	*rb_init(const t_mem_allocator *allocator)
 {
 	rb_tree	*T;
 	rb_node	*nil;
 
-	if (core_allocator_validate(allocator) != 0)
+	if (!allocator || !allocator->alloc || !allocator->free)
 	{
 		errno = EINVAL;
 		return (NULL);
 	}
-	T = core_alloc(allocator, sizeof(rb_tree));
+	T = allocator->alloc(sizeof(rb_tree));
 	if (!T)
+	{
+		errno = ENOMEM;
 		return (NULL);
-	nil = core_calloc(allocator, 1, sizeof(rb_node));
+	}
+	nil = allocator->alloc(sizeof(rb_node));
 	if (!nil)
 	{
-		core_free(allocator, T);
+		allocator->free(T);
+		errno = ENOMEM;
 		return (NULL);
 	}
 
+	memset(nil, 0, sizeof(rb_node));
 	nil->color = BLACK;
 	nil->left = nil->right = nil->parent = nil;
 	T->nil = nil;
@@ -363,7 +372,7 @@ void	rb_delete(
 	if (y_original_color == BLACK)
 		rb_delete_fixup(T, x);
 	if (_free)
-		core_free(&T->allocator, z);
+		T->allocator.free(z);
 }
 
 // // --- inorder print (debug) ---

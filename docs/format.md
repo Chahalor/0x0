@@ -33,10 +33,12 @@ genesis_format_rm("VALUE");
 ```
 
 The tag registry is an FNV-1a hash table with bucket chaining. Its internal
-structures use the applied Genesis-wide allocator from `core/setting`,
+structures use the current Genesis-wide allocator from `core/setting`,
 captured separately for each allocation. A global allocator change affects
-future registry allocations without requiring a `format` settings apply. The
+future registry allocations directly. The
 callback for an existing tag can be replaced without reallocating its storage.
+The first registration creates the bucket table; removing the last tag releases
+it. Both transitions are covered by regression tests.
 Synchronize registry changes with concurrent formatting.
 
 `genesis_format_settings` contains only format behavior choices. Currently,

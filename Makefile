@@ -12,7 +12,7 @@ MODULE_OBJECTS := $(patsubst %.c,$(BUILD_DIR)/obj/%.o,$(MODULE_SOURCES))
 
 .DEFAULT_GOAL := all
 
-TEST_GROUPS := allocator settings buffer errors
+TEST_GROUPS := settings buffer errors
 TEST_SOURCES := $(wildcard src/core/*/*.c src/core/*/_internal_/*.c \
 	src/core/*/_internal_/*/*.c)
 MEMORY_SOURCES := $(wildcard src/lib/memory/*.c src/lib/memory/_internal_/*.c)
@@ -67,7 +67,7 @@ test:
 	$(MAKE) test-valgrind
 	$(MAKE) test-cppcheck
 
-test-core: test-allocator test-settings test-buffer test-errors
+test-core: test-settings test-buffer test-errors
 
 test-deps:
 	@test -n "$(CMOCKA_LIBS)" || { \
@@ -145,9 +145,6 @@ $(FORMAT_SANITIZER_BIN): tests/lib/format.c $(FORMAT_SOURCES) $(MEMORY_SOURCES) 
 	@mkdir -p $(dir $@)
 	$(CC) $(TEST_CFLAGS) -fno-omit-frame-pointer -fsanitize=address,undefined $(TEST_CPPFLAGS) $(filter %.c,$^) $(CMOCKA_LIBS) -fsanitize=address,undefined -o $@
 
-test-allocator: $(BUILD_DIR)/tests/core/allocator
-	$<
-
 test-settings: $(BUILD_DIR)/tests/core/settings
 	$<
 
@@ -175,7 +172,7 @@ test-log: $(LOG_TEST_BIN)
 test-format: $(FORMAT_TEST_BIN)
 	$<
 
-test-strict: test-allocator test-settings test-buffer test-errors test-memory test-memory-bucket test-hash-map test-utilities test-log test-format
+test-strict: test-settings test-buffer test-errors test-memory test-memory-bucket test-hash-map test-utilities test-log test-format
 
 test-sanitize: $(SANITIZER_BINS) $(MEMORY_SANITIZER_BIN) $(MEMORY_BUCKET_SANITIZER_BIN) $(HASH_MAP_SANITIZER_BIN) $(UTILITIES_SANITIZER_BIN) $(LOG_SANITIZER_BIN) $(FORMAT_SANITIZER_BIN)
 	@set -e; for binary in $(SANITIZER_BINS) $(MEMORY_SANITIZER_BIN) $(MEMORY_BUCKET_SANITIZER_BIN) $(HASH_MAP_SANITIZER_BIN) $(UTILITIES_SANITIZER_BIN) $(LOG_SANITIZER_BIN) $(FORMAT_SANITIZER_BIN); do \
@@ -192,7 +189,7 @@ test-valgrind: $(TEST_BINS) $(MEMORY_TEST_BIN) $(MEMORY_BUCKET_TEST_BIN) $(HASH_
 test-cppcheck:
 	$(CPPCHECK) --enable=warning,style,performance,portability \
 		--error-exitcode=1 --inline-suppr \
-		--suppress=unsignedLessThanZero -Isrc/core -Isrc src/core src/lib/interface/format
+		--suppress=unsignedLessThanZero -Isrc/core -Isrc src/core src/lib/interface/format src/lib/memory
 
 $(TARGET): lib
 	@mkdir -p $(dir $@)

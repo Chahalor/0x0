@@ -1,7 +1,7 @@
 /**
  * @file setting.h
- * @brief Public growth policy key for Genesis byte buffers.
- * @details Configure buffer growth through the shared settings manager.
+ * @brief Public growth policy for Genesis byte buffers.
+ * @details Exposes the fixed default growth policy used by new buffers.
  */
 #ifndef GENESIS_CORE_BUFFER_SETTING_H
 # define GENESIS_CORE_BUFFER_SETTING_H
@@ -19,14 +19,11 @@
 /* ************************************************************************** */
 
 /**
- * @brief Key for a buffer's capacity growth policy.
- * @details The value type is t_genesis_core_buffer_settings. The default
- * starts at 64 bytes and doubles capacity. Exact growth uses requested size.
+ * @brief Default capacity growth policy.
+ * @details Starts at 64 bytes and doubles capacity. This value is constant.
  * @par Example
  * @code{.c}
- * t_genesis_core_buffer_settings value = {64, BUFFER_GROWTH_EXACT};
- * genesis_settings_set(&settings, &genesis_buffer_setting,
- *     &value, sizeof(value));
+ * size_t initial = genesis_buffer_setting.initial_capacity;
  * @endcode
  */
 extern const t_genesis_core_buffer_settings	genesis_buffer_setting;

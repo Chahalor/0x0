@@ -1,42 +1,37 @@
 # Genesis settings
 
-`core/setting` owns values shared across Genesis, including the default
-allocator. A developer edits the global settings workspace and calls its
-no-argument `apply()` function. A zero allocator descriptor selects the
-system allocator (`malloc`, `realloc`, and `free`). A successful apply changes
-the value read by future operations; allocations that already exist keep the
-allocator needed for their release.
+`core/setting` holds the allocator callbacks shared by Genesis. The public
+`G_SETTINGS` alias refers to `genesis_global_settings`. Its allocator starts
+with `malloc`, `free`, and `realloc`. Applications can replace the three
+callbacks at runtime, without recompiling Genesis:
 
 ```c
-#include "genesis.h"
+#include "core/setting/setting.h"
 
-genesis_global_settings.allocator = custom_allocator;
-genesis_global_settings.apply();
+G_SETTINGS.allocator.alloc = custom_alloc;
+G_SETTINGS.allocator.free = custom_free;
+G_SETTINGS.allocator.realloc = custom_realloc;
 ```
 
-Each module owns only settings for its algorithms and behavior. A module
-exposes a public settings struct with an `apply` function pointer and a named
-no-argument apply function. Edits to the public struct have no effect until
-apply validates and publishes a complete private configuration. A failed
-apply leaves the previous configuration active. Ordinary module calls take no
-settings parameter.
+Changes take effect directly for future allocations. Set all callbacks before
+using a module and synchronize changes with concurrent operations. `memory`
+keeps the allocation and release callbacks used by its current manager; after
+`mem_free_all`, its next allocation picks up the current global callbacks.
+The `format` tag registry records the release callback for each tag and bucket
+array, so previously registered tags remain removable after a callback change.
+Core buffers use the current global callbacks for growth and release; release
+active buffers before changing the allocator.
 
-For example, `format` currently exposes only its output limit:
+Module settings are separate. For example, `format` exposes a public
+`genesis_format_settings` workspace for its output limit. Edit it and call
+its no-argument `apply()` to publish the behavior choice. The module uses the
+last successfully applied limit:
 
 ```c
-#include "interface/format/setting.h"
-
 genesis_format_settings.max_output = 1024;
 genesis_format_settings.apply();
 ```
 
-Ordinary dynamic values use `lib/memory`. Release strings returned by
-`genesis_format` with `mem_free`; custom format writers return strings managed
-by `lib/memory` as well. Internal opaque structures may allocate directly
-through the applied global allocator and retain the matching release callback
-when the global setting changes.
-
-The older caller-owned `t_genesis_settings` manager and the core APIs that use
-it remain as compatibility code for existing core consumers. Their migration
-is outside the current `core/setting` and `format` update. This legacy manager
-is not the configuration model for new modules.
+Strings returned by `genesis_format` belong to `memory` and are released with
+`mem_free`. Custom writers return `memory` managed strings too. Module
+settings do not select an allocator.

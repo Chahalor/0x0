@@ -22,6 +22,7 @@ typedef struct s_genesis_format_		t_genesis_format_;
 
 typedef struct s_format_tag_entry	t_format_tag_entry;
 typedef struct s_format_registry	t_format_registry;
+typedef struct s_format_allocator	t_format_allocator;
 
 
 /* -----| Structs   |----- */
@@ -53,6 +54,12 @@ struct s_genesis_format_
 	t_spec						current;
 };
 
+struct s_format_allocator
+{
+	void *(*alloc)(size_t);
+	void (*free)(void *);
+};
+
 struct s_format_tag_entry
 {
 	t_format_tag_entry			*next;
@@ -60,7 +67,7 @@ struct s_format_tag_entry
 	size_t						length;
 	uint64_t					hash;
 	t_format_callback			callback;
-	t_genesis_core_allocator	allocator;
+	t_format_allocator	allocator;
 };
 
 struct s_format_registry
@@ -68,7 +75,7 @@ struct s_format_registry
 	t_format_tag_entry			**buckets;
 	size_t						bucket_count;
 	size_t						tag_count;
-	t_genesis_core_allocator	bucket_allocator;
+	t_format_allocator	bucket_allocator;
 };
 
 #endif

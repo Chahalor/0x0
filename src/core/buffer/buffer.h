@@ -4,7 +4,7 @@
  * @details The buffer stores raw bytes without a trailing NUL byte. Its
  * integer results are zero on success, positive errno on system failures,
  * or negative BUFFER_ERROR values on module-specific failures.
- * The allocator module owns allocation; setting supplies the default.
+ * Allocation uses the global callbacks from core/setting.
  */
 #ifndef GENESIS_CORE_BUFFER_H
 # define GENESIS_CORE_BUFFER_H
@@ -85,7 +85,7 @@ void	core_buffer_free(
 );
 
 /**
- * @brief Ensure capacity using the captured growth policy.
+ * @brief Ensure capacity using the default growth policy.
  * @param buffer Initialized buffer.
  * @param min_capacity Minimum number of bytes to hold.
  * @return 0, EINVAL, or ENOMEM.

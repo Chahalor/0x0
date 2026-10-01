@@ -7,7 +7,7 @@
 # define GENESIS_INTERFACE_FORMAT_INTERNAL_H
 
 /* -----| Core      |----- */
-# include "../../../../core/allocator/types.h"
+# include "../../../../core/setting/setting.h"
 
 /* -----| Internals |----- */
 # include "_types.h"
@@ -47,7 +47,7 @@ t_format_callback	format_registry_find(
 int	format_registry_set(
 	const char						*tag,
 	t_format_callback				callback,
-	const t_genesis_core_allocator	*allocator
+	const t_format_allocator	*allocator
 );
 int	format_registry_remove(
 	const char	*tag

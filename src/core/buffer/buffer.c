@@ -28,7 +28,7 @@ int	core_buffer_init(
 	if (!buffer)
 		return (EINVAL);
 
-	return (_buffer_init_default(buffer, capacity));
+	return (_buffer_init(buffer, capacity));
 }
 
 void	core_buffer_deinit(
@@ -45,7 +45,7 @@ t_genesis_core_buffer	*core_buffer_new(
 	const size_t	capacity
 )
 {
-	return (_buffer_new_default(capacity));
+	return (_buffer_new(capacity));
 }
 
 void	core_buffer_free(

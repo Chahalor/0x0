@@ -74,10 +74,13 @@ t_mem_node	*_mem_new_node(
 		errno = _size == 0 ? EINVAL : EOVERFLOW;
 		return (NULL);
 	}
-	result = core_calloc(&_manager->allocator, 1,
-		_size + sizeof(t_mem_node));
+	result = _manager->allocator.alloc(_size + sizeof(t_mem_node));
 	if (unlikely(!result))
+	{
+		errno = ENOMEM;
 		return (NULL);
+	}
+	memset(result, 0, _size + sizeof(t_mem_node));
 	result->content = (void *)(result + 1);
 	result->size = _size;
 	result->next = NULL;
@@ -104,7 +107,7 @@ int	_mem_unregister_node(
 		return (EINVAL);
 	*link = _node->next;
 	if (_must_free)
-		core_free(&_manager->allocator, _node);
+		_manager->allocator.free(_node);
 	return (mem_manager_error_none);
 }
 
@@ -336,12 +339,13 @@ int	_mem_free_all(
 		while (_current)
 		{
 			_next = _current->next;
-			core_free(&_manager->allocator, _current);
+			_manager->allocator.free(_current);
 			_current = _next;
 		}
 		_manager->bucket[_i] = NULL;
 		_i++;
 	}
+	_manager->allocator = (t_mem_allocator){0};
 	return (mem_manager_error_none);
 }
 
@@ -610,7 +614,7 @@ static void	_mem_free_all_recur(
 
 	_mem_free_all_recur(T, _node->left);
 	_mem_free_all_recur(T, _node->right);
-	core_free(&T->allocator, _node);
+	T->allocator.free(_node);
 }
 
 /**
@@ -632,8 +636,8 @@ int	_mem_free_all(
 		return (0);
 
 	_mem_free_all_recur(_manager->T, _manager->T->root);
-	core_free(&_manager->T->allocator, _manager->T->nil);
-	core_free(&_manager->T->allocator, _manager->T);
+	_manager->T->allocator.free(_manager->T->nil);
+	_manager->T->allocator.free(_manager->T);
 	_manager->T = NULL;
 	return (error_none);
 }
@@ -666,14 +670,17 @@ int	_mem_manager(
 {
 	static t_mem_manager	manager = {0};
 	#if MEM_MANAGER_TYPE == 1
-	static t_genesis_core_allocator allocator = {0};
+	t_mem_allocator allocator;
 	#endif
 	int						out;
 	va_list					_list;
 
 	#if MEM_MANAGER_TYPE == 0
 	if (!manager.allocator.alloc)
-		manager.allocator = core_allocator_system();
+		manager.allocator = (t_mem_allocator){G_SETTINGS.allocator.alloc,
+			G_SETTINGS.allocator.free};
+	if (!manager.allocator.alloc || !manager.allocator.free)
+		return (EINVAL);
 	#endif
 
 	#if MEM_MANAGER_TYPE == 1
@@ -681,8 +688,10 @@ int	_mem_manager(
 	if (!manager.T && _access != mem_manager_access_free_all
 		&& _access != mem_manager_access_free)
 	{
-		if (!allocator.alloc)
-			allocator = core_allocator_system();
+		allocator = (t_mem_allocator){G_SETTINGS.allocator.alloc,
+			G_SETTINGS.allocator.free};
+		if (!allocator.alloc || !allocator.free)
+			return (EINVAL);
 		manager.T = rb_init(&allocator);
 		if (!manager.T)
 		{

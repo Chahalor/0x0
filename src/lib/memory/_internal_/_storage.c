@@ -36,7 +36,7 @@ rb_node	*rb_create_node(
 		return (NULL);
 	}
 
-	node = T->allocator.alloc(sizeof(rb_node) + size);
+	node = G_SETTINGS.allocator.alloc(sizeof(rb_node) + size);
 	if (!node)
 	{
 		errno = ENOMEM;
@@ -51,26 +51,22 @@ rb_node	*rb_create_node(
 	return (node);
 }
 
-rb_tree	*rb_init(const t_mem_allocator *allocator)
+rb_tree	*rb_init(void)
 {
 	rb_tree	*T;
 	rb_node	*nil;
 
-	if (!allocator || !allocator->alloc || !allocator->free)
-	{
-		errno = EINVAL;
-		return (NULL);
-	}
-	T = allocator->alloc(sizeof(rb_tree));
+	T = G_SETTINGS.allocator.alloc(sizeof(rb_tree));
 	if (!T)
 	{
 		errno = ENOMEM;
 		return (NULL);
 	}
-	nil = allocator->alloc(sizeof(rb_node));
+
+	nil = G_SETTINGS.allocator.alloc(sizeof(rb_node));
 	if (!nil)
 	{
-		allocator->free(T);
+		G_SETTINGS.allocator.free(T);
 		errno = ENOMEM;
 		return (NULL);
 	}
@@ -80,7 +76,6 @@ rb_tree	*rb_init(const t_mem_allocator *allocator)
 	nil->left = nil->right = nil->parent = nil;
 	T->nil = nil;
 	T->root = nil;
-	T->allocator = *allocator;
 	return (T);
 }
 
@@ -372,7 +367,7 @@ void	rb_delete(
 	if (y_original_color == BLACK)
 		rb_delete_fixup(T, x);
 	if (_free)
-		T->allocator.free(z);
+		G_SETTINGS.allocator.free(z);
 }
 
 // // --- inorder print (debug) ---

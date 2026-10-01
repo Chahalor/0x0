@@ -43,7 +43,6 @@ static void fail_free(void *ptr)
 static void test_tree_allocation_failures(void **state)
 {
 	struct fail_allocator stats = {0};
-	t_mem_allocator allocator = {fail_alloc, fail_free};
 	rb_tree *tree;
 
 	(void)state;

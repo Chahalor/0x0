@@ -1,7 +1,8 @@
+/**
+ * 
+*/
 #ifndef GENESIS_MEMORY_INTERNAL_TYPES_H
 # define GENESIS_MEMORY_INTERNAL_TYPES_H
-
-// Header
 
 # pragma once
 
@@ -10,11 +11,11 @@
 /* ************************************************************************** */
 
 /* -----| Systems   |----- */
-#include <stddef.h>
-#include "core/setting/setting.h"
+# include <stddef.h>
+# include <stdint.h>
 
 /* -----| Globals   |----- */
-	//...
+# include "core/setting/setting.h"
 
 /* -----| Internals |----- */
 	//...
@@ -37,7 +38,6 @@ typedef struct s_rb_tree		rb_tree;
 #endif	// MEM_MANAGER_TYPE
 
 typedef struct s_mem_manager	t_mem_manager;
-typedef struct s_mem_allocator	t_mem_allocator;
 
 /* ************************************************************************** */
 /*                                 Enums                                      */
@@ -48,7 +48,7 @@ enum e_mem_manager_access
 	mem_manager_access_alloc,
 	mem_manager_access_realloc,
 	mem_manager_access_dup,
-	mem_manager_access_join,
+	mem_manager_access_remove,
 	mem_manager_access_free,
 	mem_manager_access_free_all,
 };
@@ -73,10 +73,16 @@ typedef enum { RED, BLACK } rb_color;
 /*                                 Structs                                    */
 /* ************************************************************************** */
 
-struct s_mem_allocator
+struct s_genesis_memory_arena_
 {
-	void *(*alloc)(size_t);
-	void (*free)(void *);
+	unsigned char	*bytes;
+	void			*cursor;
+	size_t			capacity;
+	struct
+	{
+		unsigned int	nb_block;
+		unsigned int	nb_mark;
+	}	stats;
 };
 
 #if MEM_MANAGER_TYPE == 0
@@ -104,9 +110,7 @@ struct s_rb_tree
 {
 	rb_node	*root;	// root of the rb tree
 	rb_node	*nil;	// sentinel of the rb tree
-	t_mem_allocator allocator;
 };
-
 
 #else
 
@@ -119,7 +123,6 @@ struct s_mem_manager
 	#if MEM_MANAGER_TYPE == 0
 
 	t_mem_node	*bucket[MEM_BUCKET_SIZE];
-	t_mem_allocator allocator;
 
 	#elif MEM_MANAGER_TYPE == 1
 

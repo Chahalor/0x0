@@ -21,74 +21,74 @@
 #if MEM_MANAGER_TYPE == 0
 
 int	_hash(
-	const void *const _ptr
+	const void *const ptr
 )
 {
-	return ((int)((uintptr_t)_ptr % MEM_BUCKET_SIZE));
+	return ((int)((uintptr_t)ptr % MEM_BUCKET_SIZE));
 }
 
 t_mem_node	*_mem_find_node(
-	const t_mem_manager *const _manager,
-	const void *const _ptr
+	const t_mem_manager *const manager,
+	const void *const ptr
 )
 {
-	if (unlikely(!_manager || !_ptr))
+	if (unlikely(!manager || !ptr))
 		return (NULL);
 
-	const int	_id = _hash(_ptr);
+	const int	_id = _hash(ptr);
 	t_mem_node	*_node;
 
-	_node = _manager->bucket[_id];
-	while (_node && _node->content != _ptr)
+	_node = manager->bucket[_id];
+	while (_node && _node->content != ptr)
 		_node = _node->next;
 	return (_node);
 }
 
 int	_mem_register_node(
-	t_mem_manager *const _manager,
+	t_mem_manager *const manager,
 	t_mem_node *_node
 )
 {
 	int	_id;
 	t_mem_node	*_current;
 
-	if (unlikely(!_manager || !_node))
+	if (unlikely(!manager || !_node))
 		return (EINVAL);
 
 	_id = _hash(_node->content);
-	_current = _manager->bucket[_id];
+	_current = manager->bucket[_id];
 	_node->next = _current;
-	_manager->bucket[_id] = _node;
+	manager->bucket[_id] = _node;
 	return (mem_manager_error_none);
 }
 
 t_mem_node	*_mem_new_node(
-	t_mem_manager *const _manager,
-	const size_t _size
+	t_mem_manager *const manager,
+	const size_t size
 )
 {
 	t_mem_node *result = NULL;
 
-	if (!_manager || _size == 0 || _size > SIZE_MAX - sizeof(t_mem_node))
+	if (!manager || size == 0 || size > SIZE_MAX - sizeof(t_mem_node))
 	{
-		errno = _size == 0 ? EINVAL : EOVERFLOW;
+		errno = size == 0 ? EINVAL : EOVERFLOW;
 		return (NULL);
 	}
-	result = _manager->allocator.alloc(_size + sizeof(t_mem_node));
+	result = manager->allocator.alloc(size + sizeof(t_mem_node));
 	if (unlikely(!result))
 	{
 		errno = ENOMEM;
 		return (NULL);
 	}
-	memset(result, 0, _size + sizeof(t_mem_node));
+	memset(result, 0, size + sizeof(t_mem_node));
 	result->content = (void *)(result + 1);
-	result->size = _size;
+	result->size = size;
 	result->next = NULL;
 	return (result);
 }
 
 int	_mem_unregister_node(
-	t_mem_manager *const _manager,
+	t_mem_manager *const manager,
 	t_mem_node *_node,
 	const int _must_free
 )
@@ -96,26 +96,26 @@ int	_mem_unregister_node(
 	int	_id;
 	t_mem_node	**link;
 
-	if (unlikely(!_manager || !_node))
+	if (unlikely(!manager || !_node))
 		return (EINVAL);
 
 	_id = _hash(_node->content);
-	link = &_manager->bucket[_id];
+	link = &manager->bucket[_id];
 	while (*link && *link != _node)
 		link = &(*link)->next;
 	if (!*link)
 		return (EINVAL);
 	*link = _node->next;
 	if (_must_free)
-		_manager->allocator.free(_node);
+		manager->allocator.free(_node);
 	return (mem_manager_error_none);
 }
 
 /**
  * @brief	set *_output to a pointer to a newly allocated area and register the node into the manager
  * 
- * @param	_manager	the manager data struct
- * @param	_size		the allocation size
+ * @param	manager	the manager data struct
+ * @param	size		the allocation size
  * @param	_output		the output pointer
  * 
  * @return	the error code
@@ -124,34 +124,34 @@ int	_mem_unregister_node(
  * 
  * @version 2.0.0
 */
-int	_mem_alloc(
-	t_mem_manager *const _manager,
-	const size_t _size,
+int	mem_alloc__(
+	t_mem_manager *const manager,
+	const size_t size,
 	void **_output
 )
 {
 	t_mem_node	*_node = NULL;
 
-	if (!_output || _size == 0)
+	if (!_output || size == 0)
 		return (EINVAL);
 	*_output = NULL;
-	if (_size > SIZE_MAX - sizeof(t_mem_node))
+	if (size > SIZE_MAX - sizeof(t_mem_node))
 		return (EOVERFLOW);
-	_node = _mem_new_node(_manager, _size);
+	_node = _mem_new_node(manager, size);
 	if (unlikely(!_node))
 		return (errno ? errno : ENOMEM);
 
-	_mem_register_node(_manager, _node);
+	_mem_register_node(manager, _node);
 	*_output = _node->content;
 	return (mem_manager_error_none);
 }
 
 /**
- * @brief	reallocat _ptr to _size and register/unregister pointer.
+ * @brief	reallocat ptr to size and register/unregister pointer.
  * 
- * @param	_manager	the manager data struct
- * @param	_ptr		the pointer to be reallocated
- * @param	_size		the allocation size
+ * @param	manager	the manager data struct
+ * @param	ptr		the pointer to be reallocated
+ * @param	size		the allocation size
  * @param	_output		the output pointer
  * 
  * @return	the error code
@@ -160,10 +160,10 @@ int	_mem_alloc(
  * 
  * @version 2.0.0
 */
-int	_mem_realloc(
-	t_mem_manager *_manager,
-	void *_ptr,
-	const size_t _size,
+int	mem_realloc__(
+	t_mem_manager *manager,
+	void *ptr,
+	const size_t size,
 	void **_output
 )
 {
@@ -173,32 +173,32 @@ int	_mem_realloc(
 	if (!_output)
 		return (EINVAL);
 	*_output = NULL;
-	if (!_ptr)
-		return (_mem_alloc(_manager, _size, _output));
-	_node = _mem_find_node(_manager, _ptr);
+	if (!ptr)
+		return (mem_alloc__(manager, size, _output));
+	_node = _mem_find_node(manager, ptr);
 	if (!_node)
 		return (EINVAL);
-	if (_size == 0)
-		return (_mem_unregister_node(_manager, _node, 1));
-	if (_size > SIZE_MAX - sizeof(t_mem_node))
+	if (size == 0)
+		return (_mem_unregister_node(manager, _node, 1));
+	if (size > SIZE_MAX - sizeof(t_mem_node))
 		return (EOVERFLOW);
-	_new = _mem_new_node(_manager, _size);
+	_new = _mem_new_node(manager, size);
 	if (!_new)
 		return (errno ? errno : ENOMEM);
 	memcpy(_new->content, _node->content,
-		_node->size < _size ? _node->size : _size);
-	_mem_register_node(_manager, _new);
-	_mem_unregister_node(_manager, _node, 1);
+		_node->size < size ? _node->size : size);
+	_mem_register_node(manager, _new);
+	_mem_unregister_node(manager, _node, 1);
 	*_output = _new->content;
 	return (0);
 }
 
 /**
- * @brief	duplicate _ptr based on _size or the stored size
+ * @brief	duplicate ptr based on size or the stored size
  * 
- * @param	_manager	the manager data struct
- * @param	_ptr		the pointer to be reallocated
- * @param	_size		the allocation size
+ * @param	manager	the manager data struct
+ * @param	ptr		the pointer to be reallocated
+ * @param	size		the allocation size
  * @param	_output		the output pointer
  * 
  * @return	the error code
@@ -207,10 +207,10 @@ int	_mem_realloc(
  * 
  * @version 2.0.0
 */
-int	_mem_dup(
-	t_mem_manager *const _manager,
-	const void *const _ptr,
-	const ssize_t _size,
+int	mem_dup__(
+	t_mem_manager *const manager,
+	const void *const ptr,
+	const ssize_t size,
 	void **_output
 )
 {
@@ -221,10 +221,10 @@ int	_mem_dup(
 	if (!_output)
 		return (EINVAL);
 	*_output = NULL;
-	if (!_ptr || _size < -1 || _size == 0)
+	if (!ptr || size < -1 || size == 0)
 		return (EINVAL);
-	_target = _mem_find_node(_manager, _ptr);
-	if (_size == -1)
+	_target = _mem_find_node(manager, ptr);
+	if (size == -1)
 	{
 		if (!_target)
 			return (EINVAL);
@@ -232,23 +232,23 @@ int	_mem_dup(
 	}
 	else
 	{
-		if (_target && (size_t)_size > _target->size)
+		if (_target && (size_t)size > _target->size)
 			return (EINVAL);
-		copy_size = (size_t)_size;
+		copy_size = (size_t)size;
 	}
 	if (copy_size > SIZE_MAX - sizeof(t_mem_node))
 		return (EOVERFLOW);
-	_new = _mem_new_node(_manager, copy_size);
+	_new = _mem_new_node(manager, copy_size);
 	if (!_new)
 		return (errno ? errno : ENOMEM);
-	memcpy(_new->content, _ptr, copy_size);
-	_mem_register_node(_manager, _new);
+	memcpy(_new->content, ptr, copy_size);
+	_mem_register_node(manager, _new);
 	*_output = _new->content;
 	return (mem_manager_error_none);
 }
 
 int	_mem_join(
-	t_mem_manager *const _manager,
+	t_mem_manager *const manager,
 	const void *const _ptr1,
 	const void *const _ptr2,
 	const ssize_t _size1,
@@ -267,8 +267,8 @@ int	_mem_join(
 	*result = NULL;
 	if (!_ptr1 || !_ptr2 || _size1 < -1 || _size2 < -1)
 		return (EINVAL);
-	node1 = _mem_find_node(_manager, _ptr1);
-	node2 = _mem_find_node(_manager, _ptr2);
+	node1 = _mem_find_node(manager, _ptr1);
+	node2 = _mem_find_node(manager, _ptr2);
 	if ((_size1 == -1 && !node1) || (_size2 == -1 && !node2))
 		return (EINVAL);
 	size1 = _size1 == -1 ? node1->size : (size_t)_size1;
@@ -278,7 +278,7 @@ int	_mem_join(
 		return (EINVAL);
 	if (size1 > SIZE_MAX - size2)
 		return (EOVERFLOW);
-	status = _mem_alloc(_manager, size1 + size2, result);
+	status = mem_alloc__(manager, size1 + size2, result);
 	if (status != 0)
 		return (status);
 	memcpy(*result, _ptr1, size1);
@@ -287,10 +287,10 @@ int	_mem_join(
 }
 
 /**
- * @brief	free _ptr and remove the linked node from the tree
+ * @brief	free ptr and remove the linked node from the tree
  * 
- * @param	_manager	the manager data struct
- * @param	_ptr		the pointer to be reallocated
+ * @param	manager	the manager data struct
+ * @param	ptr		the pointer to be reallocated
  * 
  * @return	the error code
  * 
@@ -298,8 +298,8 @@ int	_mem_join(
  * 
  * @version 2.0.0
 */
-int	_mem_free(
-	t_mem_manager *const _manager,
+int	mem_free__(
+	t_mem_manager *const manager,
 	void *_target
 )
 {
@@ -307,17 +307,17 @@ int	_mem_free(
 
 	if (!_target)
 		return (0);
-	_node = _mem_find_node(_manager, _target);
+	_node = _mem_find_node(manager, _target);
 	if (unlikely(!_node))
 		return (EINVAL);
 	else
-		return (_mem_unregister_node(_manager, _node, 1));
+		return (_mem_unregister_node(manager, _node, 1));
 }
 
 /**
  * @brief	free all the stored memory
  * 
- * @param	_manager	the manager data struct
+ * @param	manager	the manager data struct
  * 
  * @return	the error code
  * 
@@ -325,8 +325,8 @@ int	_mem_free(
  * 
  * @version 2.0.0
 */
-int	_mem_free_all(
-	t_mem_manager *const _manager
+int	mem_free_all__(
+	t_mem_manager *const manager
 )
 {
 	t_mem_node	*_current;
@@ -335,17 +335,16 @@ int	_mem_free_all(
 
 	while (_i < MEM_BUCKET_SIZE)
 	{
-		_current = _manager->bucket[_i];
+		_current = manager->bucket[_i];
 		while (_current)
 		{
 			_next = _current->next;
-			_manager->allocator.free(_current);
+			manager->allocator.free(_current);
 			_current = _next;
 		}
-		_manager->bucket[_i] = NULL;
+		manager->bucket[_i] = NULL;
 		_i++;
 	}
-	_manager->allocator = (t_mem_allocator){0};
 	return (mem_manager_error_none);
 }
 
@@ -354,8 +353,8 @@ int	_mem_free_all(
 /**
  * @brief	set *_output to a pointer to a newly allocated area and register the node into the manager
  * 
- * @param	_manager	the manager data struct
- * @param	_size		the allocation size
+ * @param	manager	the manager data struct
+ * @param	size		the allocation size
  * @param	_output		the output pointer
  * 
  * @return	the error code
@@ -364,34 +363,29 @@ int	_mem_free_all(
  * 
  * @version 2.0.0
 */
-int	_mem_alloc(
-	t_mem_manager *const _manager,
-	const size_t _size,
-	void **_output
+void	*mem_alloc__(
+	t_mem_manager *const	manager,
+	const size_t			size
 )
 {
 	rb_node	*_node = NULL;
 
-	if (!_output || _size == 0)
-		return (EINVAL);
-	*_output = NULL;
-	if (_size > SIZE_MAX - sizeof(rb_node))
+	if (size > SIZE_MAX - sizeof(rb_node))
 		return (EOVERFLOW);
-	_node = rb_create_node(_manager->T, _size);
+	_node = rb_create_node(manager->T, size);
 	if (unlikely(!_node))
 		return (errno ? errno : ENOMEM);
 
-	rb_insert(_manager->T, _node);
-	*_output = _node->key;
-	return (mem_manager_error_none);
+	rb_insert(manager->T, _node);
+	return (_node->key);
 }
 
 /**
- * @brief	reallocat _ptr to _size and register/unregister pointer.
+ * @brief	reallocat ptr to size and register/unregister pointer.
  * 
- * @param	_manager	the manager data struct
- * @param	_ptr		the pointer to be reallocated
- * @param	_size		the allocation size
+ * @param	manager	the manager data struct
+ * @param	ptr		the pointer to be reallocated
+ * @param	size		the allocation size
  * @param	_output		the output pointer
  * 
  * @return	the error code
@@ -400,48 +394,47 @@ int	_mem_alloc(
  * 
  * @version 2.0.0
 */
-int	_mem_realloc(
-	t_mem_manager *_manager,
-	void *_ptr,
-	const size_t _size,
-	void **_output
+void	*mem_realloc__(
+	t_mem_manager	*manager,
+	void			*ptr,
+	const size_t	size
 )
 {
-	rb_node		*_node;
-	rb_node		*_new = NULL;
+	rb_node	*_node;
+	rb_node	*_new = NULL;
 
-	if (!_output)
-		return (EINVAL);
-	*_output = NULL;
-	if (!_ptr)
-		return (_mem_alloc(_manager, _size, _output));
-	_node = rb_search(_manager->T, _ptr);
+	if (!ptr)
+		return (mem_alloc__(manager, size));
+
+	_node = rb_search(manager->T, ptr);
 	if (!_node)
-		return (EINVAL);
-	if (_size == 0)
+		return (ptr);
+
+	if (size == 0)
 	{
-		rb_delete(_manager->T, _node, 1);
-		return (0);
+		rb_delete(manager->T, _node, 1);
+		return (NULL);
 	}
-	if (_size > SIZE_MAX - sizeof(rb_node))
-		return (EOVERFLOW);
-	_new = rb_create_node(_manager->T, _size);
+
+	if (size > SIZE_MAX - sizeof(rb_node))
+		return (NULL);
+
+	_new = rb_create_node(manager->T, size);
 	if (unlikely(!_new))
-		return (errno ? errno : ENOMEM);
-	memcpy(_new->key, _node->key,
-		_node->size < _size ? _node->size : _size);
-	rb_insert(_manager->T, _new);
-	rb_delete(_manager->T, _node, true);
-	*_output = _new->key;
-	return (0);
+		return (NULL);
+
+	memcpy(_new->key, _node->key, _node->size < size ? _node->size : size);
+	rb_insert(manager->T, _new);
+	rb_delete(manager->T, _node, true);
+	return (_new->key);
 }
 
 /**
- * @brief	duplicate _ptr based on _size or the stored size
+ * @brief	duplicate ptr based on size or the stored size
  * 
- * @param	_manager	the manager data struct
- * @param	_ptr		the pointer to be reallocated
- * @param	_size		the allocation size
+ * @param	manager	the manager data struct
+ * @param	ptr		the pointer to be reallocated
+ * @param	size		the allocation size
  * @param	_output		the output pointer
  * 
  * @return	the error code
@@ -450,126 +443,50 @@ int	_mem_realloc(
  * 
  * @version 2.0.0
 */
-int	_mem_dup(
-	t_mem_manager *const _manager,
-	const void *const _ptr,
-	const ssize_t _size,
-	void **_output
+void	*mem_dup__(
+	t_mem_manager	*const	manager,
+	const void		*const	ptr,
+	const ssize_t			size
 )
 {
 	rb_node			*_target = NULL;
 	rb_node			*_new = NULL;
 	size_t			_copy_size;
 
-	if (!_output)
+	if (!ptr || size < -1 || size == 0)
 		return (EINVAL);
-	*_output = NULL;
-	if (!_ptr || _size < -1 || _size == 0)
-		return (EINVAL);
-	_target = rb_search(_manager->T, (void *)_ptr);
-	if (_size == -1)
+
+	_target = rb_search(manager->T, (void *)ptr);
+	if (size == -1)
 	{
 		if (unlikely(!_target))
-			return (EINVAL);
+			return (NULL);
 		_copy_size = _target->size;
 	}
 	else
 	{
-		if (_target && (size_t)_size > _target->size)
-			return (EINVAL);
-		_copy_size = (size_t)_size;
+		if (_target && (size_t)size > _target->size)
+			return (NULL);
+		_copy_size = (size_t)size;
 	}
+
 	if (_copy_size > SIZE_MAX - sizeof(rb_node))
-		return (EOVERFLOW);
-	_new = rb_create_node(_manager->T, _copy_size);
+		return (NULL);
+
+	_new = rb_create_node(manager->T, _copy_size);
 	if (!_new)
 		return (errno ? errno : ENOMEM);
-	memcpy(_new->key, _ptr, _copy_size);
-	rb_insert(_manager->T, _new);
-	*_output = _new->key;
-	return (mem_manager_error_none);
+
+	memcpy(_new->key, ptr, _copy_size);
+	rb_insert(manager->T, _new);
+	return (_new->key);
 }
 
 /**
- * @brief	will join two memory area into one new one
+ * @brief	free ptr and remove the linked node from the tree
  * 
- * if any size is negative, it will use the manager stored size instead
- * 
- * @param	manager	the memory manager
- * @param	ptr1	the first pointer to be joined
- * @param	ptr2	the seconde pointer to be joined
- * @param	size1	the size of the first memory area
- * @param	size2	the size of the second memory area
- * @param	result	the pointer for the resulted allocation
- * 
- * @return	error_none or the corresponding error code
- * @retval		`error_none`: no error
- * @retval		`error_invalid_arg`: invalid size with NULL pointer
- * @retval		all `_mem_alloc()` errors
- * 
- * @version	1.0.0
-*/
-int	_mem_join(
-	t_mem_manager *const _manager,
-	const void *const _ptr1,
-	const void *const _ptr2,
-	const ssize_t _size1,
-	const ssize_t _size2,
-	void **const result
-)
-{
-	const rb_node	*_node1;
-	const rb_node	*_node2;
-	size_t			_s1 = 0;
-	size_t			_s2 = 0;
-	void			*_dummy = NULL;
-	int				error = 0;
-
-	if (!result)
-		return (EINVAL);
-	*result = NULL;
-	if (!_ptr1 || !_ptr2 || _size1 < -1 || _size2 < -1)
-		return (EINVAL);
-	_node1 = rb_search(_manager->T, (void *)_ptr1);
-	_node2 = rb_search(_manager->T, (void *)_ptr2);
-
-	if (unlikely((!_node1 && _size1 < 0) || (!_node2 && _size2 < 0)))
-	{
-		error = EINVAL;
-		goto cleannup;
-	}
-
-	if (_size1 < 0)
-		_s1 = _node1->size;
-	else
-		_s1 = _size1;
-	if (_size2 < 0)
-		_s2 = _node2->size;
-	else
-		_s2 = _size2;
-	if (_s1 == 0 || _s2 == 0 || (_node1 && _s1 > _node1->size)
-		|| (_node2 && _s2 > _node2->size))
-		return (EINVAL);
-	if (_s1 > SIZE_MAX - _s2)
-		return (EOVERFLOW);
-
-	error = _mem_alloc(_manager, _s1 + _s2, &_dummy);
-	if (unlikely(error))
-		goto cleannup;
-
-	memcpy(_dummy, _ptr1, _s1);
-	memcpy((char *)_dummy + _s1, _ptr2, _s2);
-	*result = _dummy;
-
-cleannup:
-	return (error);
-}
-
-/**
- * @brief	free _ptr and remove the linked node from the tree
- * 
- * @param	_manager	the manager data struct
- * @param	_ptr		the pointer to be reallocated
+ * @param	manager	the manager data struct
+ * @param	ptr		the pointer to be reallocated
  * 
  * @return	the error code
  * 
@@ -577,20 +494,21 @@ cleannup:
  * 
  * @version 2.0.0
 */
-int	_mem_free(
-	t_mem_manager *const _manager,
+int	mem_free__(
+	t_mem_manager *const manager,
 	void *_target
 )
 {
-	rb_node	*_node = rb_search(_manager->T, _target); // _mem_find_node(_manager, _target);
+	rb_node	*_node = rb_search(manager->T, _target); // _mem_find_node(manager, _target);
 
 	if (!_target)
 		return (0);
+
 	if (unlikely(!_node))
 		return (EINVAL);
 	else
-		return (rb_delete(_manager->T, _node, true), error_none);
-		// return (_mem_unregister_node(_manager, _node, 1));
+		return (rb_delete(manager->T, _node, true), error_none);
+		// return (_mem_unregister_node(manager, _node, 1));
 }
 
 /**
@@ -604,7 +522,7 @@ int	_mem_free(
  * 
  * @version 1.0.0
 */
-static void	_mem_free_all_recur(
+static void	mem_free_all_recur__(
 	rb_tree *T,
 	rb_node *_node
 )
@@ -612,15 +530,15 @@ static void	_mem_free_all_recur(
 	if (unlikely(_node == T->nil))
 		return ;
 
-	_mem_free_all_recur(T, _node->left);
-	_mem_free_all_recur(T, _node->right);
-	T->allocator.free(_node);
+	mem_free_all_recur__(T, _node->left);
+	mem_free_all_recur__(T, _node->right);
+	G_SETTINGS.allocator.free(_node);
 }
 
 /**
  * @brief	free all the stored memory
  * 
- * @param	_manager	the manager data struct
+ * @param	manager	the manager data struct
  * 
  * @return	the error code
  * 
@@ -628,18 +546,31 @@ static void	_mem_free_all_recur(
  * 
  * @version 2.0.0
 */
-int	_mem_free_all(
-	t_mem_manager *const _manager
+int	mem_free_all__(
+	t_mem_manager *const manager
 )
 {
-	if (unlikely(!_manager->T))
+	if (unlikely(!manager->T))
 		return (0);
 
-	_mem_free_all_recur(_manager->T, _manager->T->root);
-	_manager->T->allocator.free(_manager->T->nil);
-	_manager->T->allocator.free(_manager->T);
-	_manager->T = NULL;
+	mem_free_all_recur__(manager->T, manager->T->root);
+	G_SETTINGS.allocator.free(manager->T->nil);
+	G_SETTINGS.allocator.free(manager->T);
+	manager->T = NULL;
 	return (error_none);
+}
+
+void	mem_remove__(
+	t_mem_manager	*const	manager,
+	void			*const	ptr
+)
+{
+	rb_node	*node = rb_search(manager->T, ptr);
+
+	if (unlikely(!node))
+		return ;
+
+	rb_delete(manager->T, node, false);
 }
 
 #else
@@ -662,106 +593,66 @@ int	_mem_free_all(
  * 
  * @version 2.0.0
 */
-int	_mem_manager(
-	const int _access,
-	void *_output,
-	...
+void	*mem_manager_(
+	const int	_access,
+	void		*ptr,
+	size_t		size
 )
 {
 	static t_mem_manager	manager = {0};
-	#if MEM_MANAGER_TYPE == 1
-	t_mem_allocator allocator;
-	#endif
-	int						out;
-	va_list					_list;
-
-	#if MEM_MANAGER_TYPE == 0
-	if (!manager.allocator.alloc)
-		manager.allocator = (t_mem_allocator){G_SETTINGS.allocator.alloc,
-			G_SETTINGS.allocator.free};
-	if (!manager.allocator.alloc || !manager.allocator.free)
-		return (EINVAL);
-	#endif
+	void					*out;
 
 	#if MEM_MANAGER_TYPE == 1
 
-	if (!manager.T && _access != mem_manager_access_free_all
-		&& _access != mem_manager_access_free)
+	if (!manager.T && _access != mem_manager_access_free_all && _access != mem_manager_access_free)
 	{
-		allocator = (t_mem_allocator){G_SETTINGS.allocator.alloc,
-			G_SETTINGS.allocator.free};
-		if (!allocator.alloc || !allocator.free)
-			return (EINVAL);
-		manager.T = rb_init(&allocator);
+		manager.T = rb_init();
 		if (!manager.T)
-		{
-			if (_output)
-				*(void **)_output = NULL;
-			return (errno ? errno : ENOMEM);
-		}
+			return (NULL);
 	}
+
 	if (!manager.T && _access == mem_manager_access_free_all)
-		return (0);
+		return (NULL);
+
 	if (!manager.T && _access == mem_manager_access_free)
-	{
-		va_start(_list, _output);
-		out = va_arg(_list, void *) ? EINVAL : 0;
-		va_end(_list);
-		return (out);
-	}
+		return (NULL);
 	
 	#endif
 
-	va_start(_list, _output);
 	switch (_access)
 	{
 		case (mem_manager_access_alloc):
 		{
-			size_t	_size = va_arg(_list, size_t);
-
-			out = _mem_alloc(&manager, _size, (void **)_output);
+			out = mem_alloc__(&manager, size);
 			break;
 		}
 		case (mem_manager_access_realloc):
 		{
-			void	*_ptr = va_arg(_list, void *);
-			size_t	_size = va_arg(_list, size_t);
 
-			out = _mem_realloc(&manager, _ptr, _size, (void **)_output);
-			break;
-		}
-		case (mem_manager_access_join):
-		{
-			const void *const _ptr1 = va_arg(_list, const void *);
-			const void *const _ptr2  = va_arg(_list, const void *);
-			const ssize_t _size1 = va_arg(_list, ssize_t);
-			const ssize_t _size2 = va_arg(_list, ssize_t);
-
-			out = _mem_join(&manager, _ptr1, _ptr2, _size1, _size2, _output);
+			out = mem_realloc__(&manager, ptr, size);
 			break;
 		}
 		case (mem_manager_access_dup):
 		{
-			const void	*_ptr = va_arg(_list, const void *);
-			ssize_t	_size = va_arg(_list, ssize_t);
-
-			out = _mem_dup(&manager, _ptr, _size, (void **)_output);
+			out = mem_dup__(&manager, ptr, size);
+			break ;
+		}
+		case (mem_manager_access_remove):
+		{
+			mem_remove__(&manager, ptr);
 			break ;
 		}
 		case (mem_manager_access_free):
 		{
-			void	*_target = va_arg(_list, void *);
-
-			out = _mem_free(&manager, _target);
+			out = mem_free__(&manager, ptr);
 			break;
 		}
 		case (mem_manager_access_free_all):
-			out = _mem_free_all(&manager);
+			out = mem_free_all__(&manager);
 			break;
 		default:
-			out = error_invalid_arg;
+			out = NULL;
 	}
 
-	va_end(_list);
 	return (out);
 }

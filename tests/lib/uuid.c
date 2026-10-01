@@ -5,9 +5,11 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/random.h>
 #include <time.h>
-#include "types/uuid/uuid.h"
+#include "types/uuid.h"
 #include "types/uuid/setting.h"
 #include "memory.h"
 #include "core/setting/setting.h"
@@ -48,14 +50,14 @@ static void *failed_alloc(size_t size)
 	return (NULL);
 }
 
-static uint64_t uuid_milliseconds(const UUID *uuid)
+static uint64_t uuid_milliseconds(const char *text)
 {
-	uint64_t result = 0;
-	size_t i;
+	char timestamp[13];
 
-	for (i = 0; i < 6; ++i)
-		result = (result << 8) | uuid->bytes[i];
-	return (result);
+	memcpy(timestamp, text, 8);
+	memcpy(timestamp + 8, text + 9, 4);
+	timestamp[12] = '\0';
+	return (strtoull(timestamp, NULL, 16));
 }
 
 static uint64_t current_milliseconds(void)
@@ -65,6 +67,44 @@ static uint64_t current_milliseconds(void)
 	assert_int_equal(clock_gettime(CLOCK_REALTIME, &now), 0);
 	return ((uint64_t)now.tv_sec * 1000u
 		+ (uint64_t)now.tv_nsec / 1000000u);
+}
+
+static int compare_uuid_text(const void *left, const void *right)
+{
+	return (strcmp(left, right));
+}
+
+static void test_generated_uuids_have_no_collisions(void **state)
+{
+	const size_t count = 10000;
+	t_genesis_uuid_setting saved = genesis_uuid_setting;
+	char (*values)[UUID_STRING_SIZE];
+	UUID *uuid;
+	char *text;
+	size_t i;
+
+	(void)state;
+	values = malloc(count * sizeof(*values));
+	assert_non_null(values);
+	genesis_uuid_setting.default_version = 7;
+	genesis_uuid_setting.getrandom = getrandom;
+	assert_int_equal(genesis_uuid_setting.apply(), 0);
+	for (i = 0; i < count; ++i)
+	{
+		uuid = genesis_uuid();
+		assert_non_null(uuid);
+		text = genesis_uuid_stringify(uuid);
+		assert_non_null(text);
+		memcpy(values[i], text, UUID_STRING_SIZE);
+		mem_free(text);
+		genesis_uuid_free(uuid);
+	}
+	qsort(values, count, sizeof(*values), compare_uuid_text);
+	for (i = 1; i < count; ++i)
+		assert_true(strcmp(values[i - 1], values[i]) != 0);
+	genesis_uuid_setting = saved;
+	assert_int_equal(genesis_uuid_setting.apply(), 0);
+	free(values);
 }
 
 static void test_generate_v7_and_short_random(void **state)
@@ -84,12 +124,13 @@ static void test_generate_v7_and_short_random(void **state)
 	after = current_milliseconds();
 	assert_non_null(uuid);
 	assert_true(random_calls > 1);
-	assert_true(uuid_milliseconds(uuid) >= before);
-	assert_true(uuid_milliseconds(uuid) <= after);
 	assert_int_equal(genesis_uuid_version(uuid), 7);
-	assert_int_equal(uuid->bytes[8] & 0xc0, 0x80);
 	text = genesis_uuid_stringify(uuid);
 	assert_non_null(text);
+	assert_true(uuid_milliseconds(text) >= before);
+	assert_true(uuid_milliseconds(text) <= after);
+	assert_true(text[19] == '8' || text[19] == '9'
+		|| text[19] == 'a' || text[19] == 'b');
 	assert_int_equal(strlen(text), 36);
 	mem_free(text);
 	genesis_uuid_free(uuid);
@@ -102,7 +143,6 @@ static void test_parse_roundtrip_and_invalid(void **state)
 	const char *upper = "018F0E12-3456-7ABC-8DEF-0123456789AB";
 	const char *lower = "018f0e12-3456-7abc-8def-0123456789ab";
 	UUID *uuid;
-	UUID before;
 	char *text;
 
 	(void)state;
@@ -112,14 +152,17 @@ static void test_parse_roundtrip_and_invalid(void **state)
 	text = genesis_uuid_stringify(uuid);
 	assert_string_equal(text, lower);
 	mem_free(text);
-	before = *uuid;
 	assert_int_equal(genesis_uuid_read_set(uuid,
 		"018f0e12-3456-7abc-8def-0123456789ag"),
 		-UUID_ERROR_INVALID_FORMAT);
-	assert_memory_equal(uuid, &before, sizeof(before));
+	text = genesis_uuid_stringify(uuid);
+	assert_string_equal(text, lower);
+	mem_free(text);
 	assert_int_equal(genesis_uuid_read_set(uuid, "bad"),
 		-UUID_ERROR_INVALID_FORMAT);
-	assert_memory_equal(uuid, &before, sizeof(before));
+	text = genesis_uuid_stringify(uuid);
+	assert_string_equal(text, lower);
+	mem_free(text);
 	errno = 0;
 	assert_null(genesis_uuid_read("bad"));
 	assert_int_equal(errno, EINVAL);
@@ -132,30 +175,38 @@ static void test_parse_roundtrip_and_invalid(void **state)
 static void test_failures_and_atomic_settings(void **state)
 {
 	t_genesis_uuid_setting saved = genesis_uuid_setting;
-	UUID uuid = UUID_MAX;
-	UUID original = uuid;
+	const char *max = "ffffffff-ffff-ffff-ffff-ffffffffffff";
+	UUID *uuid;
+	char *text;
 
 	(void)state;
+	uuid = genesis_uuid_read(max);
+	assert_non_null(uuid);
 	genesis_uuid_setting.getrandom = failed_random;
 	assert_int_equal(genesis_uuid_setting.apply(), 0);
-	assert_int_equal(genesis_uuid_set(&uuid), EIO);
-	assert_memory_equal(&uuid, &original, sizeof(uuid));
+	assert_int_equal(genesis_uuid_set(uuid), EIO);
+	text = genesis_uuid_stringify(uuid);
+	assert_string_equal(text, max);
+	mem_free(text);
 	errno = 0;
 	assert_null(genesis_uuid());
 	assert_int_equal(errno, EIO);
 	genesis_uuid_setting.default_version = 4;
 	assert_int_equal(genesis_uuid_setting.apply(), EINVAL);
-	assert_int_equal(genesis_uuid_set(&uuid), EIO);
+	assert_int_equal(genesis_uuid_set(uuid), EIO);
 	genesis_uuid_setting.default_version = 7;
 	genesis_uuid_setting.getrandom = NULL;
 	assert_int_equal(genesis_uuid_setting.apply(), EINVAL);
-	assert_int_equal(genesis_uuid_set(&uuid), EIO);
+	assert_int_equal(genesis_uuid_set(uuid), EIO);
 	genesis_uuid_setting.getrandom = empty_random;
 	assert_int_equal(genesis_uuid_setting.apply(), 0);
-	assert_int_equal(genesis_uuid_set(&uuid), EIO);
-	assert_memory_equal(&uuid, &original, sizeof(uuid));
+	assert_int_equal(genesis_uuid_set(uuid), EIO);
+	text = genesis_uuid_stringify(uuid);
+	assert_string_equal(text, max);
+	mem_free(text);
 	genesis_uuid_setting = saved;
 	assert_int_equal(genesis_uuid_setting.apply(), 0);
+	genesis_uuid_free(uuid);
 	errno = 0;
 	assert_null(genesis_uuid_generate(4));
 	assert_int_equal(errno, EINVAL);
@@ -165,20 +216,26 @@ static void test_failures_and_atomic_settings(void **state)
 
 static void test_comparison_and_null(void **state)
 {
-	UUID low = UUID_NULL;
-	UUID high = UUID_MAX;
+	UUID *low;
+	UUID *high;
 
 	(void)state;
-	assert_int_equal(genesis_uuid_cmp(&low, &low), 0);
-	assert_true(genesis_uuid_cmp(&low, &high) < 0);
-	assert_true(genesis_uuid_cmp(&high, &low) > 0);
+	low = genesis_uuid_read("00000000-0000-0000-0000-000000000000");
+	high = genesis_uuid_read("ffffffff-ffff-ffff-ffff-ffffffffffff");
+	assert_non_null(low);
+	assert_non_null(high);
+	assert_int_equal(genesis_uuid_cmp(low, low), 0);
+	assert_true(genesis_uuid_cmp(low, high) < 0);
+	assert_true(genesis_uuid_cmp(high, low) > 0);
 	assert_int_equal(genesis_uuid_cmp(NULL, NULL), 0);
-	assert_true(genesis_uuid_cmp(NULL, &low) < 0);
+	assert_true(genesis_uuid_cmp(NULL, low) < 0);
 	assert_int_equal(genesis_uuid_version(NULL), INT_MAX);
 	assert_int_equal(genesis_uuid_read_set(NULL, "bad"), EINVAL);
 	errno = 0;
 	assert_null(genesis_uuid_read(NULL));
 	assert_int_equal(errno, EINVAL);
+	genesis_uuid_free(low);
+	genesis_uuid_free(high);
 }
 
 static void test_allocation_failure(void **state)
@@ -216,6 +273,7 @@ int main(void)
 {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_generate_v7_and_short_random),
+		cmocka_unit_test(test_generated_uuids_have_no_collisions),
 		cmocka_unit_test(test_parse_roundtrip_and_invalid),
 		cmocka_unit_test(test_failures_and_atomic_settings),
 		cmocka_unit_test(test_comparison_and_null),

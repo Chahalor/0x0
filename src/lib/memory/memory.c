@@ -30,17 +30,14 @@
  * @version 1.2.0
  */
 void	*mem_alloc(
-	const size_t _size
+	const size_t	_size
 )
 {
 	void	*result = NULL;
-	int		_error = error_none;
 
-	_error = _mem_manager(mem_manager_access_alloc, &result, _size);
-	if (_error == 0)
-		return (result);
-	errno = _error;
-	return (NULL);
+	result = mem_manager_(mem_manager_access_alloc, NULL, _size);
+
+	return (result);
 }
 
 /**
@@ -56,22 +53,15 @@ void	*mem_alloc(
  * @version 1.1.0
 */
 void	*mem_realloc(
-	void *_ptr,
-	const size_t _size
+	void			*_ptr,
+	const size_t	_size
 )
 {
 	void	*result = NULL;
-	int		_error = error_none;
 
-	_error = _mem_manager(mem_manager_access_realloc, &result, _ptr, _size);
-	if (_error == 0)
-	{
-		if (_size == 0)
-			errno = 0;
-		return (result);
-	}
-	errno = _error;
-	return (NULL);
+	result = mem_manager_(mem_manager_access_realloc, _ptr, _size);
+
+	return (result);
 }
 
 /**
@@ -92,33 +82,8 @@ void	*mem_dup(
 )
 {
 	void	*result = NULL;
-	int		_error = error_none;
 
-	_error = _mem_manager(mem_manager_access_dup, &result, _ptr, _size);
-	if (_error != 0)
-		errno = _error;
-	return (result);
-}
-
-void	*mem_join(
-	const void *const restrict _ptr1,
-	const void *const restrict _ptr2,
-	const ssize_t _size1,
-	const ssize_t _size2
-)
-{
-	int		_error = error_none;
-	void	*result = NULL;
-
-	if (unlikely(!_ptr1 || !_ptr2))
-	{
-		errno = EINVAL;
-		return (NULL);
-	}
-
-	_error = _mem_manager(mem_manager_access_join, &result, _ptr1, _ptr2, _size1, _size2);
-	if (_error != 0)
-		errno = _error;
+	result = mem_manager_(mem_manager_access_dup, _ptr, _size);
 
 	return (result);
 }
@@ -140,9 +105,7 @@ void	mem_free(
 {
 	int	_error = error_none;
 
-	_error = _mem_manager(mem_manager_access_free, NULL, _ptr);
-	if (_error != 0)
-		errno = _error;
+	_error = mem_manager_(mem_manager_access_free, _ptr, 0);
 }
 
 /**
@@ -159,5 +122,5 @@ void	mem_free(
 __attribute__((destructor))
 void	mem_free_all(void)
 {
-	_mem_manager(mem_manager_access_free_all, NULL);
+	mem_manager_(mem_manager_access_free_all, NULL, 0);
 }

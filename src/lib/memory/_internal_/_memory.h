@@ -36,7 +36,7 @@
 
 #if MEM_MANAGER_TYPE == 1
 
-rb_tree	*rb_init(const t_mem_allocator *allocator);
+rb_tree	*rb_init();
 
 rb_node	*rb_create_node(
 			rb_tree *T,
@@ -61,10 +61,10 @@ void	rb_delete(
 
 #endif
 
-int		_mem_manager(
-			const int _access,
-			void *_output,
-			...
-			);
+void	*mem_manager_(
+	const int	_access,
+	void		*ptr,
+	size_t		size
+);
 
 #endif	// GENESIS_MEMORY_INTERNAL_MEMORY_H

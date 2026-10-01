@@ -106,32 +106,10 @@ void	mem_free(
  * @version	1.0.0
  */
 void	*mem_dup(
-			const void *const restrict _ptr,
-			const ssize_t _size
-			);
+	const void *const restrict _ptr,
+	const ssize_t _size
+);
 
-/**
- * @brief Concatenate bytes from two sources into a new registered block.
- * @param _ptr1 First non-NULL readable source.
- * @param _ptr2 Second non-NULL readable source.
- * @param _size1 Positive byte count, or -1 for the full registered block.
- * @param _size2 Positive byte count, or -1 for the full registered block.
- * Counts beyond registered block sizes are rejected; foreign sources require
- * explicit counts.
- * @return New owned block, or NULL with errno set to EINVAL, EOVERFLOW or ENOMEM.
- * @par Example
- * @code{.c}
- * void *joined = mem_join(first, second, first_size, second_size);
- * @endcode
- * 
- * @version	1.0.0
-*/
-void	*mem_join(
-			const void *const restrict _ptr1,
-			const void *const restrict _ptr2,
-			const ssize_t _size1,
-			const ssize_t _size2
-			);
 
 /**
  * @brief Release every registered block. Safe to call repeatedly; later
@@ -146,5 +124,44 @@ void	*mem_join(
  * @version	1.0.0
 */
 void	mem_free_all(void);
+
+// remove a pointer from the manager, does not free any memory
+void	mem_manager_rm(
+	void	*const	ptr
+);
+
+MEM_ARENA	*mem_arena_new(void);
+
+void		mem_arena_free(
+	MEM_ARENA	*const	arena
+);
+
+void	mem_arena_reset(
+	MEM_ARENA	*const	arena
+);
+
+void	*mem_arena_alloc(
+	MEM_ARENA	*const	arena,
+	const size_t		size
+);
+
+t_arena_mark	mem_arena_mark(
+	MEM_ARENA	*const	arena
+);
+
+void	mem_arena_rewind(
+	MEM_ARENA	*const	arena,
+	const t_arena_mark	mark
+);
+
+void	mem_arena_trim(
+	MEM_ARENA	*const	arena
+);
+
+void	mem_arena_dup(
+	MEM_ARENA	*const	arena,
+	void		*const	ptr,
+	const ssize_t		size
+);
 
 #endif	// GENESIS_MEMORY_H

@@ -29,6 +29,6 @@ const char	*genesis_strerror(
 }
 
 const t_genesis_error_module	genesis_core_error_module = {
-	.name = "core.error",
-	.describe = core_error_strerror
+	.name		= "core.error",
+	.describe	= core_error_strerror
 };

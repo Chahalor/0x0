@@ -17,8 +17,8 @@
 /* ----| Internals  |----- */
 /** @brief Messages indexed by core error enum values. */
 static const char *const	_core_error_messages[] = {
-	[CORE_ERROR_SUCCESS] = "Success",
-	[CORE_ERROR_UNKNOWN] = "Unknown core error"
+	[CORE_ERROR_SUCCESS]	= "Success",
+	[CORE_ERROR_UNKNOWN]	= "Unknown core error"
 };
 
 /** @brief Decode standard errno or index the core message table. */
@@ -32,8 +32,7 @@ const char	*_core_error_strerror(
 		return (strerror(code));
 
 	index = (size_t)(0u - (unsigned int)code);
-	if (index >= sizeof(_core_error_messages) / sizeof(_core_error_messages[0])
-		|| !_core_error_messages[index])
+	if (index >= sizeof(_core_error_messages) / sizeof(_core_error_messages[0]) || !_core_error_messages[index])
 		index = CORE_ERROR_UNKNOWN;
 
 	return (_core_error_messages[index]);
@@ -42,7 +41,7 @@ const char	*_core_error_strerror(
 /** @brief Dispatch through any module's stable message descriptor. */
 const char	*_genesis_strerror(
 	const t_genesis_error_module	*const	module,
-	const int							code
+	const int								code
 )
 {
 	if (!module || !module->name || !module->describe)

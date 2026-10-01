@@ -23,7 +23,7 @@ const char	*_core_error_strerror(
 );
 const char	*_genesis_strerror(
 	const t_genesis_error_module	*const	module,
-	const int							code
+	const int								code
 );
 
 #endif

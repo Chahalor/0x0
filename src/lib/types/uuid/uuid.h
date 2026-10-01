@@ -22,7 +22,18 @@
 /* ************************************************************************** */
 /*                                 Macros                                     */
 /* ************************************************************************** */
-	//...
+
+# ifndef UUID_STRING_SIZE
+#  define	UUID_STRING_SIZE	37
+# endif	// UUID_STRING_SIZE
+
+# define	UUID_NULL	(UUID){{0}}
+# define	UUID_MAX	(UUID){{	\
+	0xff, 0xff, 0xff, 0xff,			\
+	0xff, 0xff, 0xff, 0xff,			\
+	0xff, 0xff, 0xff, 0xff,			\
+	0xff, 0xff, 0xff, 0xff 			\
+}}
 
 /* ************************************************************************** */
 /*                                 Prototypes                                 */

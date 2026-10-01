@@ -51,7 +51,9 @@ typedef struct s_genesis_uuid_	UUID;
 
 enum e_types_errors
 {
-	TYPES_ERROR_NONE = error_none,
+	TYPES_ERROR_SUCCESS = error_none,
+	TYPES_ERROR_UUID_INVALID_FORMAT,
+	TYPES_ERROR_UNKNOW
 };
 
 /* ************************************************************************** */

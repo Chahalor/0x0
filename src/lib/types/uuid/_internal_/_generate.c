@@ -35,8 +35,6 @@ t_uuid uuid_v7(void)
 
 	/* External */
 #include "memory.h"
-#include "core/allocator/allocator.h"
-#include "core/setting/setting.h"
 
 /* ----| Prototypes |----- */
 	//...
@@ -97,41 +95,17 @@ int	set_uuid_(
 UUID	*genesis_uuid_(void)
 {
 	UUID	*uuid = NULL;
-	t_genesis_core_allocator allocator = genesis_default_allocator();
 
-	uuid = core_alloc(&allocator, sizeof(UUID));
+	uuid = uuid_new_();
 	if (unlikely(!uuid))
 		return (NULL);
 
 	if (unlikely(set_uuid_(uuid, uuid_config.default_version)))
 	{
-		core_free(&allocator, uuid);
+		uuid_free_(uuid);
 		return (NULL);
 	}
 
-	set_uuid_(uuid, uuid_config.default_version);
-
 	return (uuid);
 }
 
-UUID	*genesis_uuid_generate_(
-	const int	version
-)
-{
-	UUID	*uuid = NULL;
-	t_genesis_core_allocator allocator = genesis_default_allocator();
-
-	uuid = core_alloc(&allocator, sizeof(UUID));
-	if (unlikely(!uuid))
-		return (NULL);
-
-	if (unlikely(set_uuid_(uuid, uuid_config.default_version)))
-	{
-		core_free(&allocator, uuid);
-		return (NULL);
-	}genesis_default_allocator
-
-	set_uuid_(uuid, version);
-
-	return (uuid);
-}

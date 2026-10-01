@@ -2,7 +2,7 @@
 
 /* ----| Headers    |----- */
 	/* Standard */
-		//...
+#include <limits.h>
 
 	/* Internal */
 #include "uuid.h"
@@ -73,11 +73,28 @@ int	genesis_uuid_read_set(
 int	genesis_uuid_cmp(
 	const UUID	*const	id1,
 	const UUID	*const	id2
-);
+)
+{
+	if (unlikely(!id1 || !id2))
+	{
+		if (!id1 && !id2)
+			return (true);
+		else
+			return (false);
+	}
+
+	return (uuid_cmp_(id1, id2));
+}
 
 int	genesis_uuid_version(
 	const UUID	*const	id
-);
+)
+{
+	if (unlikely(!id))
+		return (INT_MAX);
+
+	return (uuid_version_(id));
+}
 
 // MARK: strings
 

@@ -67,3 +67,12 @@ void	uuid_fill_string_(
 char	*uuid_stringify_(
 	const UUID	*const	uuid
 );
+
+int	uuid_version_(
+	const UUID	*const	uuid
+);
+
+int	uuid_cmp_(
+	const UUID	*const	id1,
+	const UUID	*const	id2
+);

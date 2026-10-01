@@ -1,4 +1,4 @@
 ROOT_DIR        ?= ../../..
-SUBMODULES      :=
+SUBMODULES      := uuid
 
 include $(ROOT_DIR)/mk/main-module.mk

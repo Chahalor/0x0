@@ -19,7 +19,7 @@ are revised.
 ## Current suite
 
 The CMocka contract suite covers the current `core` modules and the reviewed
-`lib` modules: memory, hash map, random, times and log.
+`lib` modules: memory, random, times, log, format and UUID.
 
 Install CMocka development headers and library, Valgrind, and Cppcheck. A C11
 compiler with AddressSanitizer and UndefinedBehaviorSanitizer support is also
@@ -40,8 +40,8 @@ make test
 
 `make test-core` runs only the core groups. To run one contract group, use
 `make test-settings`, `make test-buffer`,
-`make test-errors`, `make test-memory`, `make test-memory-bucket`, `make test-hash-map`,
-`make test-utilities` or `make test-log`.
+`make test-errors`, `make test-memory`, `make test-memory-bucket`,
+`make test-utilities`, `make test-log`, `make test-format` or `make test-uuid`.
 
 The tests exercise normal results, invalid arguments, error codes, global
 allocator callbacks, buffer growth and boundary behavior. Regression cases

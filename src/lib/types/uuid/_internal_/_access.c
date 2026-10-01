@@ -1,34 +1,28 @@
 /**
- * 
-*/
+ * @file _access.c
+ * @brief Access UUID version and compare byte values.
+ */
+
 /* ----| Headers    |----- */
 	/* Standard */
-#include <string.h>
+# include <string.h>
 
 	/* Internal */
-#include "_uuid.h"
-
-	/* External */
-		//...
-
-/* ----| Prototypes |----- */
-	//...
+# include "_uuid.h"
 
 /* ----| Internals  |----- */
-	//...
-
-/* ----| Public     |----- */
-
-int	uuid_version_(
-	const UUID	*const	uuid
+/** @brief Read the version nibble from a non-NULL UUID. */
+int uuid_version_(
+	const UUID *uuid
 )
 {
 	return (uuid->bytes[6] >> 4);
 }
 
-int	uuid_cmp_(
-	const UUID	*const	id1,
-	const UUID	*const	id2
+/** @brief Compare the complete byte representation of two UUIDs. */
+int uuid_cmp_(
+	const UUID *id1,
+	const UUID *id2
 )
 {
 	return (memcmp(id1->bytes, id2->bytes, sizeof(id1->bytes)));

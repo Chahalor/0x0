@@ -1,60 +1,30 @@
-// Header
-
+/**
+ * @file _types.h
+ * @brief Private snapshot of applied UUID behavior settings.
+ */
+#ifndef GENESIS_TYPES_UUID_INTERNAL_TYPES_H
+# define GENESIS_TYPES_UUID_INTERNAL_TYPES_H
 # pragma once
 
-/* ************************************************************************** */
-/*                                 Headers                                    */
-/* ************************************************************************** */
-
-/* -----| Systems   |----- */
+/* ----| System    |----- */
 # include <stdint.h>
 
-/* -----| Globals   |----- */
-	//...
+/* ----| Internals |----- */
+# include "../setting.h"
 
-/* -----| Internals |----- */
-# include "../../types.h"
+/* ----| Typedefs  |----- */
+typedef struct s_genesis_uuid_config	t_genesis_uuid_config;
 
-/* -----| Modules   |----- */
-	//...
+/* ----| Structs   |----- */
+struct s_genesis_uuid_config
+{
+	int			default_version;
+	ssize_t		(*getrandom)(void *, size_t, unsigned int);
+};
 
-/* ************************************************************************** */
-/*                                 Typedefs                                   */
-/* ************************************************************************** */
-/* -----| Typename  |----- */
-	//...
-
-/* -----| Enums     |----- */
-	//...
-
-/* -----| Unions    |----- */
-	//...
-
-/* -----| Structs   |----- */
-
-typedef struct s_genesis_uuid_settings_	t_genesis_uuid_config;
-
-
-/* ************************************************************************** */
-/*                                 Enums                                      */
-/* ************************************************************************** */
-	//...
-
-/* ************************************************************************** */
-/*                                 Unions                                     */
-/* ************************************************************************** */
-	//...
-
-/* ************************************************************************** */
-/*                                 Structs                                    */
-/* ************************************************************************** */
-
-struct s_genesis_uuid_
+struct s_genesis_uuid
 {
 	uint8_t	bytes[16];
 };
 
-struct s_genesis_uuid_settings_
-{
-	int	default_version;
-};
+#endif

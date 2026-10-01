@@ -1,111 +1,88 @@
-// Header
+/**
+ * @file uuid.c
+ * @brief Public validation and dispatch for UUID operations.
+ */
 
 /* ----| Headers    |----- */
 	/* Standard */
-#include <limits.h>
+# include <errno.h>
+# include <limits.h>
 
 	/* Internal */
-#include "uuid.h"
-#include "_internal_/_uuid.h"
-
-	/* External */
-		//...
-
-/* ----| Prototypes |----- */
-	//...
-
-/* ----| Internals  |----- */
-	//...
+# include "../uuid.h"
+# include "_internal_/_uuid.h"
 
 /* ----| Public     |----- */
-
 UUID	*genesis_uuid(void)
 {
 	return (genesis_uuid_generate_(uuid_config.default_version));
 }
 
 UUID	*genesis_uuid_generate(
-	const int	version
+	int version
 )
 {
 	return (genesis_uuid_generate_(version));
 }
 
-int		genesis_uuid_set(
-	UUID	*const restrict	id
+void	genesis_uuid_free(
+	UUID *uuid
 )
 {
-	if (unlikely(!id))
-		return (EINVAL);
+	uuid_free_(uuid);
+}
 
+int	genesis_uuid_set(
+	UUID *id
+)
+{
+	if (!id)
+		return (EINVAL);
 	return (set_uuid_(id, uuid_config.default_version));
 }
 
 UUID	*genesis_uuid_read(
-	const char	*const	str
+	const char *str
 )
 {
-	UUID	*r;
-
-	if (unlikely(!str))
+	if (!str)
+	{
+		errno = EINVAL;
 		return (NULL);
-	
-	r = uuid_new_();
-	if (unlikely(!r))
-		return (EINVAL);
-
-	return (uuid_parse_(r, str));
+	}
+	return (_uuid_read(str));
 }
 
 int	genesis_uuid_read_set(
-	UUID		*const restrict	id,
-	const char	*const			str
+	UUID *id,
+	const char *str
 )
 {
-	if (unlikely(!id || !str))
+	if (!id || !str)
 		return (EINVAL);
-
 	return (uuid_parse_(id, str));
 }
 
-// MARK: usage
-
 int	genesis_uuid_cmp(
-	const UUID	*const	id1,
-	const UUID	*const	id2
+	const UUID *id1,
+	const UUID *id2
 )
 {
-	if (unlikely(!id1 || !id2))
-	{
-		if (!id1 && !id2)
-			return (true);
-		else
-			return (false);
-	}
-
-	return (uuid_cmp_(id1, id2));
+	return (_uuid_compare(id1, id2));
 }
 
 int	genesis_uuid_version(
-	const UUID	*const	id
+	const UUID *id
 )
 {
-	if (unlikely(!id))
+	if (!id)
 		return (INT_MAX);
-
 	return (uuid_version_(id));
 }
 
-// MARK: strings
-
 char	*genesis_uuid_stringify(
-	const UUID	*const	id
+	const UUID *id
 )
 {
-	static const UUID	NILL = UUID_NULL;
-
-	if (unlikely(!id))
-		return (uuid_stringify_(&NILL));
-
-	return (uuid_stringify_(id));
+	return (_uuid_stringify(id));
 }

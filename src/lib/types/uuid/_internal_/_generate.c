@@ -1,111 +1,102 @@
 /**
- * 
-*/
-/*
-t_uuid uuid_v7(void)
-{
-	t_uuid		uuid;
-	uint64_t	ts;
+ * @file _generate.c
+ * @brief Generate UUID version 7 values from time and configured randomness.
+ */
 
-	ts = unix_time_ms();
-
-	random_bytes(uuid.bytes, 16);
-
-	uuid.bytes[0] = (ts >> 40) & 0xff;
-	uuid.bytes[1] = (ts >> 32) & 0xff;
-	uuid.bytes[2] = (ts >> 24) & 0xff;
-	uuid.bytes[3] = (ts >> 16) & 0xff;
-	uuid.bytes[4] = (ts >> 8) & 0xff;
-	uuid.bytes[5] = ts & 0xff;
-
-	uuid.bytes[6] = (uuid.bytes[6] & 0x0f) | 0x70;
-	uuid.bytes[8] = (uuid.bytes[8] & 0x3f) | 0x80;
-
-	return (uuid);
-}
-*/
 /* ----| Headers    |----- */
 	/* Standard */
-#include <sys/time.h>
-#include <linux/time.h>
-#include <sys/random.h>
+# include <errno.h>
+# include <stdint.h>
+# include <time.h>
 
 	/* Internal */
-#include "_uuid.h"
-
-	/* External */
-#include "memory.h"
-
-/* ----| Prototypes |----- */
-	//...
+# include "_uuid.h"
 
 /* ----| Internals  |----- */
-
-#define APPLY_(dest, ms, step) dest = (ms >> step) & 0xff;
-static void	apply_time_(
-	UUID	*const	uuid,
-	const uint64_t	ms
+/** @brief Build a v7 value only after clock and random input succeed. */
+int set_uuid_v7(
+	UUID *uuid
 )
 {
-	for (char i = 0; i < 6; i++)
-	{
-		APPLY_(uuid->bytes[i], ms, 40 - (8 * i));
-	}
-}
+	UUID	result;
+	struct timespec	now;
+	uint64_t		milliseconds;
+	size_t			offset;
+	ssize_t			count;
+	size_t			i;
 
-/* ----| Public     |----- */
-
-int	set_uuid_v7(
-	UUID	*const	uuid
-)
-{
-	struct timespec	ts;
-	uint64_t		ms;
-
-	if (unlikely(!uuid))
+	if (!uuid)
 		return (EINVAL);
 
-	if (unlikely(clock_gettime(CLOCK_REALTIME, &ts)))
-		return (1);
-	ms = (uint64_t)ts.tv_sec * 1000 + (uint64_t)ts.tv_nsec / 1000000;
+	if (clock_gettime(CLOCK_REALTIME, &now) != 0)
+		return (errno ? errno : EIO);
 
-	if (unlikely(getrandom(uuid->bytes, 16, 0)));
-		return (1);
+	milliseconds = (uint64_t)now.tv_sec * 1000u + (uint64_t)now.tv_nsec / 1000000u;
+	offset = 0;
+	while (offset < sizeof(result.bytes))
+	{
+		count = uuid_config.getrandom(result.bytes + offset,
+			sizeof(result.bytes) - offset, 0);
+		if (count < 0 && errno == EINTR)
+			continue;
 
-	apply_time_(uuid, ms);
-	uuid->bytes[6] = (uuid->bytes[6] & 0x0f) | 0x70;
-	uuid->bytes[8] = (uuid->bytes[8] & 0x3f) | 0x80;
+		if (count <= 0)
+			return (count == 0 ? EIO : (errno ? errno : EIO));
+
+		if ((size_t)count > sizeof(result.bytes) - offset)
+			return (EIO);
+
+		offset += (size_t)count;
+	}
+	for (i = 0; i < 6; ++i)
+		result.bytes[i] = (uint8_t)(milliseconds >> (40u - 8u * i));
+
+	result.bytes[6] = (uint8_t)((result.bytes[6] & 0x0fu) | 0x70u);
+	result.bytes[8] = (uint8_t)((result.bytes[8] & 0x3fu) | 0x80u);
+	*uuid = result;
+	return (0);
 }
 
-int	set_uuid_(
-	UUID	*const	uuid,
-	const int		version
+/** @brief Dispatch generation for the supported UUID version. */
+int set_uuid_(
+	UUID *uuid,
+	int version
 )
 {
-	switch (version)
-	{
-		case (7):
-			return (set_uuid_v7(uuid));
+	if (!uuid)
+		return (EINVAL);
 
-		default:
-			return (TYPES_ERROR_UNKNOWN_VERSIONS);
-	}
+	if (version != 7)
+		return (-UUID_ERROR_UNSUPPORTED_VERSION);
+
+	return (set_uuid_v7(uuid));
 }
 
-UUID	*genesis_uuid_(void)
+/** @brief Allocate a generated UUID and release it on any failure. */
+UUID *genesis_uuid_generate_(
+	int version
+)
 {
-	UUID	*uuid = NULL;
+	UUID	*uuid;
+	int				status;
+
+	if (version != 7)
+	{
+		errno = EINVAL;
+		return (NULL);
+	}
 
 	uuid = uuid_new_();
-	if (unlikely(!uuid))
+	if (!uuid)
 		return (NULL);
 
-	if (unlikely(set_uuid_(uuid, uuid_config.default_version)))
+	status = set_uuid_(uuid, version);
+	if (status != 0)
 	{
 		uuid_free_(uuid);
+		errno = status > 0 ? status : EINVAL;
 		return (NULL);
 	}
 
 	return (uuid);
 }
-

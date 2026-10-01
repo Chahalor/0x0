@@ -1,32 +1,26 @@
 /**
- * 
-*/
+ * @file _memory.c
+ * @brief Allocate UUID values through the Genesis memory module.
+ */
+
 /* ----| Headers    |----- */
-	/* Standard */
-		//...
-
 	/* Internal */
-#include "_uuid.h"
+# include "_uuid.h"
 
-	/* External */
-		//...
-
-/* ----| Prototypes |----- */
-	//...
+	/* Modules */
+# include "memory.h"
 
 /* ----| Internals  |----- */
-	//...
-
-/* ----| Public     |----- */
-
-UUID	*uuid_new_(void)
+/** @brief Allocate a tracked UUID value. */
+UUID *uuid_new_(void)
 {
-	return (G_SETTINGS.allocator.alloc(sizeof(UUID)));
+	return (mem_alloc(sizeof(UUID)));
 }
 
-void	uuid_free_(
-	UUID	*const restrict	uuid
+/** @brief Release a tracked UUID value. */
+void uuid_free_(
+	UUID *uuid
 )
 {
-	G_SETTINGS.allocator.free(uuid);
+	mem_free(uuid);
 }

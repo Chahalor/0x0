@@ -17,28 +17,36 @@
 # include "../types.h"
 
 /* -----| Typedefs  |----- */
-typedef struct s_genesis_format_spec_	t_spec;
-typedef struct s_genesis_format_		t_genesis_format_;
+typedef struct s_genesis_format_bltn_color_	t_bltn_color;
 
-typedef struct s_format_tag_entry	t_format_tag_entry;
-typedef struct s_format_registry	t_format_registry;
-typedef struct s_format_allocator	t_format_allocator;
+typedef struct s_genesis_format_spec_		t_spec;
+typedef struct s_genesis_format_			t_genesis_format_;
+
+typedef struct s_format_tag_entry			t_format_tag_entry;
+typedef struct s_format_registry			t_format_registry;
+typedef struct s_format_allocator			t_format_allocator;
 
 
 /* -----| Structs   |----- */
+struct s_genesis_format_bltn_color_
+{
+	const char	*name;
+	const char	*value;
+};
+
 struct s_genesis_format_spec_
 {
-	char		text[64];
-	size_t		size;
-	char		conversion;
-	char		length[3];
+	char			text[64];
+	size_t			size;
+	char			conversion;
+	char			length[3];
 	unsigned int	width;
-	int			precision;
-	bool		left;
-	bool		plus;
-	bool		space;
-	bool		zero;
-	bool		alternate;
+	int				precision;
+	bool			left;
+	bool			plus;
+	bool			space;
+	bool			zero;
+	bool			alternate;
 };
 
 struct s_genesis_format_

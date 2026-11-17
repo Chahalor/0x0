@@ -630,7 +630,9 @@ int	genesis_format_(
 	t_genesis_format_	*cfg
 )
 {
-	int status;
+	int	status;
+
+	genesis_format_builtins_init();
 
 	while (cfg->fm[cfg->cursor])
 	{

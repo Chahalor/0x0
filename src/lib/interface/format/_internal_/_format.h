@@ -53,4 +53,13 @@ int	format_registry_remove(
 	const char	*tag
 );
 
+// MARK: Buitlins
+
+char	*genesis_format_builtin_colors(
+	const void	*value,
+	const char	*param
+);
+
+void	genesis_format_builtins_init(void);
+
 #endif

@@ -587,6 +587,7 @@ static int	render_custom(
 	t_genesis_format_	*cfg
 )
 {
+	t_genesis_format_	 option_state = {0};
 	const char				*start	   = cfg->fm + cfg->cursor + 1;
 	const char				*end	   = strchr(start, '}');
 	const char				*colon;
@@ -613,11 +614,31 @@ static int	render_custom(
 		return (errno);
 	memcpy(options, colon ? colon + 1 : end, length);
 	options[length] = '\0';
-	errno			= 0;
-	piece			= callback(va_arg(cfg->list, void *), options);
+	option_state.fm = options;
+	option_state.max_output = cfg->max_output;
+	va_copy(option_state.list, cfg->list);
+	status = genesis_format_(&option_state);
 	mem_free(options);
+	if (status != 0)
+	{
+		va_end(option_state.list);
+		mem_free(option_state.buffer);
+		return (status);
+	}
+
+	va_end(cfg->list);
+	va_copy(cfg->list, option_state.list);
+	va_end(option_state.list);
+	errno			= 0;
+	piece			= callback(va_arg(cfg->list, void *), option_state.buffer);
 	if (!piece)
-		return (errno ? errno : EINVAL);
+	{
+		status = errno ? errno : EINVAL;
+		mem_free(option_state.buffer);
+		return (status);
+	}
+
+	mem_free(option_state.buffer);
 	status = emit(cfg, piece, strlen(piece));
 	mem_free(piece);
 	cfg->cursor = (size_t)(end - cfg->fm) + 1;

@@ -145,15 +145,23 @@ static int	_parse_bltn(
 	const t_bltn_color	*found;
 	size_t					length;
 
-	found = bsearch(bltn, builtins, count, sizeof(*builtins),
-		_compare_bltn_color);
+	printf(" bltn = `%s`\n", bltn);	// rm
+	found = bsearch(bltn, builtins, count, sizeof(*builtins), _compare_bltn_color);
 	if (!found)
+	{
+		fprintf(stderr, " - %s return at line %s:%d\n",  __func__, __FILE__, __LINE__);
 		return (-1);
+	}
 
 	length = strlen(found->value);
 	if (length >= s_result)
+	{
+		fprintf(stderr, " - %s return at line %s:%d\n",  __func__, __FILE__, __LINE__);
 		return (-1);
+	}
+
 	memcpy(result, found->value, length + 1);
+	fprintf(stderr, " - %s return at line %s:%d\n",  __func__, __FILE__, __LINE__);
 	return (0);
 }
 
@@ -172,7 +180,7 @@ char	*genesis_format_builtin_colors(
 	const char	*param
 )
 {
-	fprintf(stderr, "%s has been caller\n", __func__);	// rm
+	fprintf(stderr, " - %s has been caller\n", __func__);	// rm
 	static const t_bltn_color	builtins[] = {
 		{"AQUA", AQUA},
 		{"BEIGE", BEIGE},
@@ -219,29 +227,34 @@ char	*genesis_format_builtin_colors(
 	(void)value;
 	if (!param)
 	{
+		fprintf(stderr, " - %s return at line %s:%d\n",  __func__, __FILE__, __LINE__);
 		errno = EINVAL;
 		return (NULL);
 	}
 
 	result = mem_alloc(20);
 	if (!result)
+	{
+		fprintf(stderr, " - %s return at line %s:%d\n",  __func__, __FILE__, __LINE__);
 		return (NULL);
+	}
 
 	if (*param == '[')
 		err = _parse_rgb(param, result, 20);
 	else if (*param == '#')
 		err = _parse_hexa(param, result, 20);
 	else
-		err = _parse_bltn(param, builtins,
-			sizeof(builtins) / sizeof(builtins[0]), result, 20);
+		err = _parse_bltn(param, builtins, sizeof(builtins) / sizeof(builtins[0]), result, 20);
 
 	if (err < 0)
 	{
+		fprintf(stderr, " - %s return at line %s:%d\n",  __func__, __FILE__, __LINE__);
 		mem_free(result);
 		errno = EINVAL;
 		return (NULL);
 	}
 
+	fprintf(stderr, " - %s return at line %s:%d\n",  __func__, __FILE__, __LINE__);
 	return (result);
 }
 
@@ -252,7 +265,7 @@ void	genesis_format_builtins_init(void)
 	if (likely(is_init))
 		return ;
 
-	fprintf(stderr, "%s has been caller\n", __func__);	// rm
-	genesis_format_set("COLOR", genesis_format_builtin_colors);
+	fprintf(stderr, " - %s has been caller\n", __func__);	// rm
+	genesis_format_set(GENESIS_FORMAT_BLTN_COLOR, genesis_format_builtin_colors);
 	is_init = 1;
 }

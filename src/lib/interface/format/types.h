@@ -20,7 +20,9 @@
 
 /**
  * @brief Convert one custom argument to an owned NUL-terminated string.
- * @details value is supplied as `(void *)` in the format call. options is
+ * @details Standard conversions in the tag's option text are expanded before
+ * the callback and consume arguments preceding value. A literal percent uses
+ * `%%`. value is supplied as `(void *)` after those arguments. options is
  * borrowed and valid only during the callback. Return a NUL-terminated
  * string allocated with mem_alloc(), mem_realloc(), or another function
  * returning memory managed by lib/memory. The formatter takes ownership

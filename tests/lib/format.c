@@ -100,6 +100,38 @@ static void	tags(
 	assert_null(genesis_format("%{ITEM}", (void *)"value"));
 	assert_int_equal(errno, EINVAL);
 }
+
+static void	test_custom_options_expand_in_argument_order(
+	void **state
+)
+{
+	char	*result;
+	char	output[32];
+	int		option_count = -1;
+
+	(void)state;
+	assert_int_equal(genesis_format_set("OPT_ORDER", custom), 0);
+	result = genesis_format("%{OPT_ORDER:%s-%d}:%s", "wide", 7,
+		(void *)"item", "tail");
+	assert_non_null(result);
+	assert_string_equal(result, "item:wide-7:tail");
+	mem_free(result);
+	assert_int_equal(genesis_sformat(output, sizeof(output),
+		"%{OPT_ORDER:%s}", "short", (void *)"value"), 11);
+	assert_string_equal(output, "value:short");
+	result = genesis_format("[%{OPT_ORDER:%%/%*d}]", 3, 5,
+		(void *)"value");
+	assert_non_null(result);
+	assert_string_equal(result, "[value:%/  5]");
+	mem_free(result);
+	result = genesis_format("%{OPT_ORDER:pre%n%s}", &option_count,
+		"late", (void *)"value");
+	assert_non_null(result);
+	assert_int_equal(option_count, 3);
+	assert_string_equal(result, "value:prelate");
+	mem_free(result);
+	assert_int_equal(genesis_format_rm("OPT_ORDER"), 0);
+}
 static void	test_first_tag_after_empty_registry(void **state)
 {
 	char *result;
@@ -336,6 +368,14 @@ static void	test_va_forms_and_errors(
 	result = call_vformat("%s:%d", "v", 9);
 	assert_string_equal(result, "v:9");
 	mem_free(result);
+	assert_int_equal(genesis_format_set("VA_OPT", custom), 0);
+	result = call_vformat("%{VA_OPT:%d}", 42, (void *)"value");
+	assert_string_equal(result, "value:42");
+	mem_free(result);
+	assert_int_equal(call_vsformat(output, sizeof(output),
+		"%{VA_OPT:%s}", "small", (void *)"v"), 7);
+	assert_string_equal(output, "v:sm");
+	assert_int_equal(genesis_format_rm("VA_OPT"), 0);
 	assert_int_equal(call_vsformat(output, sizeof output, "%s", "abcdef"), 6);
 	assert_string_equal(output, "abcd");
 	assert_string_equal(genesis_format_strerror(0), "Success");
@@ -434,7 +474,65 @@ static void	test_callback_failure(
 		genesis_sformat(output, sizeof output, "%{ERROR}", (void *)"x"),
 		SIZE_MAX);
 	assert_string_equal(output, "");
+	errno = 0;
+	assert_null(genesis_format("%{ERROR:%s}", "expanded", (void *)"x"));
+	assert_int_equal(errno, EIO);
 	assert_int_equal(genesis_format_rm("ERROR"), 0);
+}
+
+static int	option_callback_calls;
+
+static char	*count_option_callback(
+	const void	*value,
+	const char	*options
+)
+{
+	char	*result;
+
+	(void)value;
+	(void)options;
+	++option_callback_calls;
+	result = mem_alloc(3);
+	if (result)
+		memcpy(result, "ok", 3);
+	return (result);
+}
+
+static void	test_custom_option_errors_skip_callback(
+	void **state
+)
+{
+	char	output[16] = "old";
+	t_genesis_global_settings saved_settings = G_SETTINGS;
+
+	(void)state;
+	option_callback_calls = 0;
+	assert_int_equal(genesis_format_set("OPT_ERROR", count_option_callback), 0);
+	errno = 0;
+	assert_null(genesis_format("%{OPT_ERROR:%q}", (void *)"value"));
+	assert_int_equal(errno, EINVAL);
+	assert_int_equal(option_callback_calls, 0);
+	errno = 0;
+	assert_int_equal(genesis_sformat(output, sizeof(output),
+		"%{OPT_ERROR:%s}", (char *)NULL, (void *)"value"), SIZE_MAX);
+	assert_int_equal(errno, EINVAL);
+	assert_string_equal(output, "");
+	assert_int_equal(option_callback_calls, 0);
+	genesis_format_settings.max_output = 3;
+	assert_int_equal(genesis_format_settings.apply(), 0);
+	errno = 0;
+	assert_null(genesis_format("%{OPT_ERROR:%s}", "long",
+		(void *)"value"));
+	assert_int_equal(errno, EOVERFLOW);
+	assert_int_equal(option_callback_calls, 0);
+	restore_format_defaults();
+	G_SETTINGS.allocator.alloc = fail_alloc;
+	errno = 0;
+	assert_null(genesis_format("%{OPT_ERROR:text}", (void *)"value"));
+	assert_int_equal(errno, ENOMEM);
+	assert_int_equal(option_callback_calls, 0);
+	G_SETTINGS = saved_settings;
+	assert_int_equal(genesis_format_rm("OPT_ERROR"), 0);
 }
 
 static void	test_standard_conversion_matrix(
@@ -544,6 +642,7 @@ static void	test_registry_allocation_failures(void **state)
 	char *result;
 
 	(void)state;
+	assert_int_equal(genesis_format_rm(GENESIS_FORMAT_BLTN_COLOR), 0);
 	active_fail_after = &counter;
 	assert_int_equal(genesis_format_set("BASE", replacement), 0);
 	G_SETTINGS = settings;
@@ -577,6 +676,7 @@ int	main(void)
 		cmocka_unit_test(fixed),
 		cmocka_unit_test(test_first_tag_after_empty_registry),
 		cmocka_unit_test(tags),
+		cmocka_unit_test(test_custom_options_expand_in_argument_order),
 		cmocka_unit_test(errors),
 		cmocka_unit_test(floats_and_n),
 		cmocka_unit_test(standard_boundaries),
@@ -588,6 +688,7 @@ int	main(void)
 		cmocka_unit_test(test_registry_replace_and_invalid),
 		cmocka_unit_test(test_allocator_failure),
 		cmocka_unit_test(test_callback_failure),
+		cmocka_unit_test(test_custom_option_errors_skip_callback),
 		cmocka_unit_test(test_standard_conversion_matrix),
 		cmocka_unit_test(test_settings_defaults_and_zero),
 		cmocka_unit_test(test_registry_allocation_failures)};

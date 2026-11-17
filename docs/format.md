@@ -15,9 +15,16 @@ platform representation. A malformed format or unknown custom tag sets
 `errno` to `EINVAL`.
 
 Custom tags use `%{TAG}` or `%{TAG:options}`. Register with
-`genesis_format_set` and remove with `genesis_format_rm`. Each tag consumes one
-argument passed as `(void *)value`. A writer receives only `value` and a
-borrowed `options` string. It returns a valid NUL-terminated string from
+`genesis_format_set` and remove with `genesis_format_rm`. Standard conversions
+inside `options` are expanded before the callback, using arguments in their
+usual left-to-right order. The tag then consumes one `(void *)value` argument.
+Use `%%` to pass a literal percent. An invalid option format or failed option
+expansion fails the whole formatting call without invoking that callback.
+An option expansion follows the same output limit as a formatting call;
+expansion side effects such as `%n` remain if a later conversion fails. An
+option `%n` counts bytes produced by the option expansion itself.
+A writer receives only `value` and the borrowed, expanded `options` string.
+It returns a valid NUL-terminated string from
 `mem_alloc`, `mem_realloc`, or another function returning memory managed by
 `lib/memory`. The formatter takes ownership and calls `mem_free` after copying
 it. On failure the writer returns `NULL` and sets `errno`.
@@ -28,6 +35,10 @@ static char *as_text(const void *value, const char *options);
 genesis_format_set("VALUE", as_text);
 char *text = genesis_format("%{VALUE:short}", (void *)value);
 /* use text */
+mem_free(text);
+
+/* The option argument precedes the custom value. */
+text = genesis_format("%{VALUE:%s}", "short", (void *)value);
 mem_free(text);
 genesis_format_rm("VALUE");
 ```

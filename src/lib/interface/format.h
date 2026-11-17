@@ -26,14 +26,22 @@
 # include "../memory.h"
 
 /* ************************************************************************** */
+/*                                 MACRO                                      */
+/* ************************************************************************** */
+
+# define	GENESIS_FORMAT_BLTN_COLOR	"COLOR"
+
+/* ************************************************************************** */
 /*                                 Prototypes                                 */
 /* ************************************************************************** */
 
 /**
  * @brief Format arguments into a newly allocated C string.
  * @param format Non-NULL printf-style format. A custom tag uses
- * `%{TAG:options}` and consumes one `(void *)` argument. `%n` writes its
- * counter. Positional arguments are unsupported.
+ * `%{TAG:options}`. Standard conversions in options are expanded first,
+ * consuming their arguments left to right; the tag then consumes one
+ * `(void *)` value. Use `%%` for a literal percent in options. `%n` writes
+ * its counter. Positional arguments are unsupported.
  * @return Owned string, including for empty input, or NULL with errno set to
  * EINVAL, ENOMEM, or EOVERFLOW. No result remains on error, though earlier
  * `%n` writes and callback side effects can remain. The last applied

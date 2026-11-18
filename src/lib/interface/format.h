@@ -32,6 +32,7 @@
 # define	GENESIS_FORMAT_BLTN_COLOR	"COLOR"
 # define	GENESIS_FORMAT_UUID			"UUID"
 # define	GENESIS_FORMAT_JSON			"JSON"
+# define	GENESIS_FORMAT_TOML			"TOML"
 
 /* ************************************************************************** */
 /*                                 Prototypes                                 */

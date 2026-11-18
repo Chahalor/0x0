@@ -31,5 +31,6 @@ void	genesis_format_builtins_init(void)
 	_format_set_safe(GENESIS_FORMAT_BLTN_COLOR,	genesis_format_builtin_colors);
 	genesis_format_set(GENESIS_FORMAT_UUID,		genesis_format_builtin_uuid);
 	genesis_format_set(GENESIS_FORMAT_JSON,		genesis_format_builtin_json);
+	genesis_format_set(GENESIS_FORMAT_TOML,		genesis_format_builtin_toml);
 	is_init = 1;
 }

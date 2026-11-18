@@ -75,6 +75,11 @@ char	*genesis_format_builtin_json(
 	const char	*param
 );
 
+char	*genesis_format_builtin_toml(
+	const void	*value,
+	const char	*param
+);
+
 void	genesis_format_builtins_init(void);
 
 #endif

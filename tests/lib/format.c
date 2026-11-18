@@ -24,6 +24,9 @@
 # include "interface/format/setting.h"
 # include "interface/format/error.h"
 # include "core/error/error.h"
+# include "types/uuid.h"
+# include "interface/format/_internal_/_format.h"
+# include "standards/formating.h"
 
 /* ----| Prototypes |----- */
 static void	count_free(
@@ -101,6 +104,71 @@ static void	tags(
 	assert_int_equal(errno, EINVAL);
 }
 
+static char	*safe_echo(
+	const char	*options
+)
+{
+	char	*result;
+	size_t	length;
+
+	length = strlen(options);
+	result = mem_alloc(length + 1);
+	if (result)
+		memcpy(result, options, length + 1);
+	return (result);
+}
+
+static char	*safe_fail(
+	const char	*options
+)
+{
+	(void)options;
+	errno = EIO;
+	return (NULL);
+}
+
+static void	test_safe_callbacks_do_not_consume_values(
+	void **state
+)
+{
+	char	*result;
+	char	output[8];
+
+	(void)state;
+	assert_int_equal(_format_set_safe("SAFE", safe_echo), 0);
+	result = genesis_format("[%{SAFE:%s}|%d]", "ready", 9);
+	assert_string_equal(result, "[ready|9]");
+	mem_free(result);
+	result = genesis_format("%{SAFE}%d", 9);
+	assert_string_equal(result, "9");
+	mem_free(result);
+	assert_int_equal(genesis_sformat(output, sizeof(output),
+		"%{SAFE}-%d", 9), 2);
+	assert_string_equal(output, "-9");
+	result = genesis_format("%{COLOR:RED}%s", "tail");
+	assert_string_equal(result, RED "tail");
+	mem_free(result);
+	result = genesis_format("%{COLOR:%s}%s", "RED", "tail");
+	assert_string_equal(result, RED "tail");
+	mem_free(result);
+	assert_int_equal(genesis_format_set("SAFE", custom), 0);
+	result = genesis_format("%{SAFE:raw}", (void *)"value");
+	assert_string_equal(result, "value:raw");
+	mem_free(result);
+	assert_int_equal(_format_set_safe("SAFE", safe_echo), 0);
+	result = genesis_format("%{SAFE:again}%d", 4);
+	assert_string_equal(result, "again4");
+	mem_free(result);
+	assert_int_equal(genesis_format_rm("SAFE"), 0);
+	assert_int_equal(_format_set_safe("SAFE_FAIL", safe_fail), 0);
+	errno = 0;
+	assert_null(genesis_format("%{SAFE_FAIL}%d", 9));
+	assert_int_equal(errno, EIO);
+	assert_int_equal(genesis_format_rm("SAFE_FAIL"), 0);
+	assert_int_equal(_format_set_safe(NULL, safe_echo), EINVAL);
+	assert_int_equal(_format_set_safe("SAFE", NULL), EINVAL);
+}
+
 static void	test_custom_options_expand_in_argument_order(
 	void **state
 )
@@ -131,6 +199,62 @@ static void	test_custom_options_expand_in_argument_order(
 	assert_string_equal(result, "value:prelate");
 	mem_free(result);
 	assert_int_equal(genesis_format_rm("OPT_ORDER"), 0);
+}
+
+static void	test_builtin_uuid_options(
+	void **state
+)
+{
+	const char	*canonical = "018f0e12-3456-7abc-8def-0123456789ab";
+	UUID			*uuid;
+	char			*result;
+
+	(void)state;
+	uuid = genesis_uuid_read(canonical);
+	assert_non_null(uuid);
+	result = genesis_format("%{UUID}", (void *)uuid);
+	assert_string_equal(result, canonical);
+	mem_free(result);
+	result = genesis_format("%{UUID:upper}", (void *)uuid);
+	assert_string_equal(result, "018F0E12-3456-7ABC-8DEF-0123456789AB");
+	mem_free(result);
+	result = genesis_format("%{UUID:compact}", (void *)uuid);
+	assert_string_equal(result, "018f0e1234567abc8def0123456789ab");
+	mem_free(result);
+	result = genesis_format("%{UUID:upper;compact}", (void *)uuid);
+	assert_string_equal(result, "018F0E1234567ABC8DEF0123456789AB");
+	mem_free(result);
+	result = genesis_format("%{UUID:compact;upper}", (void *)uuid);
+	assert_string_equal(result, "018F0E1234567ABC8DEF0123456789AB");
+	mem_free(result);
+	result = genesis_format("%{UUID:%s}", "compact;upper", (void *)uuid);
+	assert_string_equal(result, "018F0E1234567ABC8DEF0123456789AB");
+	mem_free(result);
+	result = genesis_format("%{UUID}", (void *)NULL);
+	assert_string_equal(result, "00000000-0000-0000-0000-000000000000");
+	mem_free(result);
+	genesis_uuid_free(uuid);
+}
+
+static void	test_builtin_uuid_rejects_invalid_options(
+	void **state
+)
+{
+	UUID	*uuid;
+
+	(void)state;
+	uuid = genesis_uuid_read("018f0e12-3456-7abc-8def-0123456789ab");
+	assert_non_null(uuid);
+	errno = 0;
+	assert_null(genesis_format("%{UUID:unknown}", (void *)uuid));
+	assert_int_equal(errno, EINVAL);
+	errno = 0;
+	assert_null(genesis_format("%{UUID:upper;}", (void *)uuid));
+	assert_int_equal(errno, EINVAL);
+	errno = 0;
+	assert_null(genesis_format("%{UUID:;compact}", (void *)uuid));
+	assert_int_equal(errno, EINVAL);
+	genesis_uuid_free(uuid);
 }
 static void	test_first_tag_after_empty_registry(void **state)
 {
@@ -643,6 +767,8 @@ static void	test_registry_allocation_failures(void **state)
 
 	(void)state;
 	assert_int_equal(genesis_format_rm(GENESIS_FORMAT_BLTN_COLOR), 0);
+	assert_int_equal(genesis_format_rm(GENESIS_FORMAT_UUID), 0);
+	assert_int_equal(genesis_format_rm(GENESIS_FORMAT_JSON), 0);
 	active_fail_after = &counter;
 	assert_int_equal(genesis_format_set("BASE", replacement), 0);
 	G_SETTINGS = settings;
@@ -676,7 +802,10 @@ int	main(void)
 		cmocka_unit_test(fixed),
 		cmocka_unit_test(test_first_tag_after_empty_registry),
 		cmocka_unit_test(tags),
+		cmocka_unit_test(test_safe_callbacks_do_not_consume_values),
 		cmocka_unit_test(test_custom_options_expand_in_argument_order),
+		cmocka_unit_test(test_builtin_uuid_options),
+		cmocka_unit_test(test_builtin_uuid_rejects_invalid_options),
 		cmocka_unit_test(errors),
 		cmocka_unit_test(floats_and_n),
 		cmocka_unit_test(standard_boundaries),

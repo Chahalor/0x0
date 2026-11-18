@@ -13,7 +13,9 @@ TEST_SOURCES := $(wildcard ../src/core/*/*.c ../src/core/*/_internal_/*.c \
 	../src/core/*/_internal_/*/*.c)
 MEMORY_SOURCES := $(wildcard ../src/lib/memory/*.c ../src/lib/memory/_internal_/*.c)
 UTILITIES_SOURCES := ../src/lib/random/random.c ../src/lib/times/convert.c
-FORMAT_SOURCES := $(wildcard ../src/lib/interface/format/*.c ../src/lib/interface/format/_internal_/*.c)
+FORMAT_SOURCES := $(wildcard ../src/lib/interface/format/*.c ../src/lib/interface/format/_internal_/*.c) \
+	../src/lib/interface/format/_internal_/builtins/_colors.c \
+	../src/lib/interface/format/_internal_/builtins/_uuid.c
 FORMAT_HEADERS := $(wildcard ../src/lib/interface/format.h ../src/lib/interface/format/*.h ../src/lib/interface/format/_internal_/*.h)
 UUID_SOURCES := $(wildcard ../src/lib/types/uuid/*.c ../src/lib/types/uuid/_internal_/*.c)
 UUID_HEADERS := $(wildcard ../src/lib/types/uuid.h ../src/lib/types/uuid/*.h ../src/lib/types/uuid/_internal_/*.h)
@@ -44,8 +46,9 @@ UUID_TEST_BIN := $(BUILD_DIR)/tests/lib/uuid
 UUID_SANITIZER_BIN := $(UUID_TEST_BIN).san
 FORMAT_TEST_BIN := $(BUILD_DIR)/tests/lib/format
 FORMAT_SANITIZER_BIN := $(FORMAT_TEST_BIN).san
+DEV_FORMAT_TEST_BIN := $(BUILD_DIR)/tests/dev/format
 
-.PHONY: test norm test-core test-strict test-sanitize \
+.PHONY: test norm test-core test-strict test-sanitize test-dev-format dev-library \
 	test-valgrind test-cppcheck test-deps test-memory test-memory-bucket test-memory-arena test-memory-arena-bucket \
 	test-utilities test-log test-format test-uuid test-archive clean \
 	$(addprefix test-,$(TEST_GROUPS))
@@ -148,13 +151,23 @@ $(UUID_SANITIZER_BIN): lib/uuid.c $(UUID_SOURCES) $(MEMORY_SOURCES) $(TEST_SOURC
 		-fsanitize=address,undefined $(TEST_CPPFLAGS) $(filter %.c,$^) $(CMOCKA_LIBS) \
 		-fsanitize=address,undefined -o $@
 
-$(FORMAT_TEST_BIN): lib/format.c $(FORMAT_SOURCES) $(MEMORY_SOURCES) $(TEST_SOURCES) $(FORMAT_HEADERS) | test-deps
+$(FORMAT_TEST_BIN): lib/format.c $(FORMAT_SOURCES) $(UUID_SOURCES) $(MEMORY_SOURCES) $(TEST_SOURCES) $(FORMAT_HEADERS) $(UUID_HEADERS) dev-library | test-deps
 	@mkdir -p $(dir $@)
-	$(CC) $(TEST_CFLAGS) $(TEST_CPPFLAGS) $(filter %.c,$^) $(CMOCKA_LIBS) -o $@
+	$(CC) $(TEST_CFLAGS) -D_POSIX_C_SOURCE=200809L $(TEST_CPPFLAGS) $(filter %.c,$^) $(TARGET) $(CMOCKA_LIBS) -lm -o $@
 
-$(FORMAT_SANITIZER_BIN): lib/format.c $(FORMAT_SOURCES) $(MEMORY_SOURCES) $(TEST_SOURCES) $(FORMAT_HEADERS) | test-deps
+$(FORMAT_SANITIZER_BIN): lib/format.c $(FORMAT_SOURCES) $(UUID_SOURCES) $(MEMORY_SOURCES) $(TEST_SOURCES) $(FORMAT_HEADERS) $(UUID_HEADERS) dev-library | test-deps
 	@mkdir -p $(dir $@)
-	$(CC) $(TEST_CFLAGS) -fno-omit-frame-pointer -fsanitize=address,undefined $(TEST_CPPFLAGS) $(filter %.c,$^) $(CMOCKA_LIBS) -fsanitize=address,undefined -o $@
+	$(CC) $(TEST_CFLAGS) -D_POSIX_C_SOURCE=200809L -fno-omit-frame-pointer -fsanitize=address,undefined $(TEST_CPPFLAGS) $(filter %.c,$^) $(TARGET) $(CMOCKA_LIBS) -lm -fsanitize=address,undefined -o $@
+
+dev-library:
+	$(MAKE) -C .. all
+
+$(DEV_FORMAT_TEST_BIN): ../.dev/main.c dev-library
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -Wall -Wextra -Werror -g3 $(TEST_CPPFLAGS) $< $(TARGET) -lm -o $@
+
+test-dev-format: $(DEV_FORMAT_TEST_BIN)
+	sh dev/format_demo.sh $<
 
 test-settings: $(BUILD_DIR)/tests/core/settings
 	$<

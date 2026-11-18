@@ -46,6 +46,10 @@ use `make -C tests test-settings`, `test-buffer`, `test-errors`,
 with `make -C tests test-archive`. The root `make norm` runs Cppcheck through
 `tests/Makefile`.
 
+`make -C tests test-dev-format` is an optional local regression check for the
+ignored `.dev/main.c` demo. It builds the archive and checks the COLOR, UUID,
+and JSON argument order through the demo's command-line output.
+
 The tests exercise normal results, invalid arguments, error codes, global
 allocator callbacks, buffer growth and boundary behavior. Regression cases
 cover buffer self-append during reallocation, zero-capacity buffers, failed

@@ -591,7 +591,7 @@ static int	render_custom(
 	const char				*start	   = cfg->fm + cfg->cursor + 1;
 	const char				*end	   = strchr(start, '}');
 	const char				*colon;
-	t_format_callback		 callback;
+	const t_format_tag_entry	*entry;
 	char					*options;
 	char					*piece;
 	size_t					 length;
@@ -603,8 +603,8 @@ static int	render_custom(
 	length = (size_t)((colon ? colon : end) - start);
 	if (length == 0)
 		return (EINVAL);
-	callback = format_registry_find(start, length);
-	if (!callback)
+	entry = format_registry_find(start, length);
+	if (!entry)
 		return (EINVAL);
 	length	= (size_t)(end - (colon ? colon + 1 : end));
 	if (length == SIZE_MAX)
@@ -630,7 +630,12 @@ static int	render_custom(
 	va_copy(cfg->list, option_state.list);
 	va_end(option_state.list);
 	errno			= 0;
-	piece			= callback(va_arg(cfg->list, void *), option_state.buffer);
+	if (entry->callback)
+		piece = entry->callback(va_arg(cfg->list, void *),
+			option_state.buffer);
+	else
+		piece = entry->safe_callback(option_state.buffer);
+
 	if (!piece)
 	{
 		status = errno ? errno : EINVAL;

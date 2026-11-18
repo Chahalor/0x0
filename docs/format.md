@@ -29,6 +29,11 @@ It returns a valid NUL-terminated string from
 `lib/memory`. The formatter takes ownership and calls `mem_free` after copying
 it. On failure the writer returns `NULL` and sets `errno`.
 
+The internal `COLOR` builtin consumes no value argument. Its options can still
+contain standard conversions, which consume their own arguments. The public
+`genesis_format_set` API continues to register callbacks that consume one
+`(void *)` value.
+
 ```c
 static char *as_text(const void *value, const char *options);
 
@@ -42,6 +47,13 @@ text = genesis_format("%{VALUE:%s}", "short", (void *)value);
 mem_free(text);
 genesis_format_rm("VALUE");
 ```
+
+The built-in `%{UUID}` tag accepts a borrowed `UUID *` value (including NULL,
+which renders the nil UUID). Its default result is the canonical lower-case
+36-character form. The options `upper` and `compact` can be combined with `;`
+in either order: `upper` selects upper-case hex digits and `compact` removes
+hyphens. Empty or unknown option segments fail with `errno = EINVAL`; an
+entirely empty option string selects the default form.
 
 The tag registry is an FNV-1a hash table with bucket chaining. Its internal
 structures use the current Genesis-wide allocator from `core/setting`,

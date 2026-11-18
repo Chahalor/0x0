@@ -31,6 +31,11 @@ int	_format_set(
 	const char			*tag,
 	t_format_callback		callback
 );
+/** @brief Register a private tag that consumes no value argument. */
+int	_format_set_safe(
+	const char				*tag,
+	t_format_safe_callback	callback
+);
 
 // MARK: Errors
 
@@ -40,13 +45,14 @@ const char	*_format_strerror(
 
 // MARK: Registry
 
-t_format_callback	format_registry_find(
+const t_format_tag_entry	*format_registry_find(
 	const char	*tag,
 	size_t		length
 );
 int	format_registry_set(
-	const char						*tag,
-	t_format_callback				callback,
+	const char					*tag,
+	t_format_callback			callback,
+	t_format_safe_callback		safe_callback,
 	const t_format_allocator	*allocator
 );
 int	format_registry_remove(
@@ -56,6 +62,15 @@ int	format_registry_remove(
 // MARK: Buitlins
 
 char	*genesis_format_builtin_colors(
+	const char	*param
+);
+
+char	*genesis_format_builtin_uuid(
+	const void	*value,
+	const char	*param
+);
+
+char	*genesis_format_builtin_json(
 	const void	*value,
 	const char	*param
 );

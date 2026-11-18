@@ -20,6 +20,11 @@
 static int	format_configure(
 	t_genesis_format_	*state
 );
+static int	format_register(
+	const char				*tag,
+	t_format_callback		callback,
+	t_format_safe_callback	safe_callback
+);
 
 /* ----| Internals  |----- */
 /** @brief Capture the format output limit for one operation. */
@@ -37,6 +42,26 @@ static int	format_configure(
 	}
 
 	return (status);
+}
+
+/** @brief Register exactly one callback kind with the current allocator. */
+static int	format_register(
+	const char				*tag,
+	t_format_callback		callback,
+	t_format_safe_callback	safe_callback
+)
+{
+	t_format_allocator	allocator;
+
+	if (!tag || !*tag || (callback == NULL) == (safe_callback == NULL))
+		return (EINVAL);
+
+	allocator = (t_format_allocator){G_SETTINGS.allocator.alloc,
+		G_SETTINGS.allocator.free};
+	if (!allocator.alloc || !allocator.free)
+		return (EINVAL);
+
+	return (format_registry_set(tag, callback, safe_callback, &allocator));
 }
 
 /* ----| Public     |----- */
@@ -115,11 +140,14 @@ int	_format_set(
 	t_format_callback		callback
 )
 {
-	t_format_allocator	allocator;
-	allocator = (t_format_allocator){G_SETTINGS.allocator.alloc,
-		G_SETTINGS.allocator.free};
-	if (!allocator.alloc || !allocator.free)
-		return (EINVAL);
+	return (format_register(tag, callback, NULL));
+}
 
-	return (format_registry_set(tag, callback, &allocator));
+/** @brief Register a private option-only callback. */
+int	_format_set_safe(
+	const char				*tag,
+	t_format_safe_callback	callback
+)
+{
+	return (format_register(tag, NULL, callback));
 }

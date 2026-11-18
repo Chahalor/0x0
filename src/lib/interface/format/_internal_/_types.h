@@ -26,6 +26,11 @@ typedef struct s_format_tag_entry			t_format_tag_entry;
 typedef struct s_format_registry			t_format_registry;
 typedef struct s_format_allocator			t_format_allocator;
 
+/** @brief Private callback that consumes only its expanded options. */
+typedef char	*(*t_format_safe_callback)(
+	const char	*options
+);
+
 
 /* -----| Structs   |----- */
 struct s_genesis_format_bltn_color_
@@ -70,12 +75,13 @@ struct s_format_allocator
 
 struct s_format_tag_entry
 {
-	t_format_tag_entry			*next;
-	char						*tag;
-	size_t						length;
-	uint64_t					hash;
-	t_format_callback			callback;
-	t_format_allocator	allocator;
+	t_format_tag_entry		*next;
+	char					*tag;
+	size_t					length;
+	uint64_t				hash;
+	t_format_callback		callback;
+	t_format_safe_callback	safe_callback;
+	t_format_allocator		allocator;
 };
 
 struct s_format_registry

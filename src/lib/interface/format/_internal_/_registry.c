@@ -128,8 +128,8 @@ static void	format_tag_free(
 }
 
 /* ----| Public     |----- */
-/** @brief Look up a borrowed callback in expected constant time. */
-t_format_callback	format_registry_find(
+/** @brief Look up a borrowed tag entry in expected constant time. */
+const t_format_tag_entry	*format_registry_find(
 	const char	*tag,
 	size_t		length
 )
@@ -146,7 +146,7 @@ t_format_callback	format_registry_find(
 	{
 		if (entry->hash == hash && entry->length == length
 			&& memcmp(entry->tag, tag, length) == 0)
-			return (entry->callback);
+			return (entry);
 		entry = entry->next;
 	}
 
@@ -155,8 +155,9 @@ t_format_callback	format_registry_find(
 
 /** @brief Add or replace a tag, preserving all prior entries on failure. */
 int	format_registry_set(
-	const char						*tag,
-	t_format_callback				callback,
+	const char					*tag,
+	t_format_callback			callback,
+	t_format_safe_callback		safe_callback,
 	const t_format_allocator	*allocator
 )
 {
@@ -164,6 +165,10 @@ int	format_registry_set(
 	uint64_t			hash;
 	size_t				length;
 	int					status;
+
+	if (!tag || !allocator || !allocator->alloc || !allocator->free
+		|| (callback == NULL) == (safe_callback == NULL))
+		return (EINVAL);
 
 	status = format_tag_length(tag, &length);
 	if (status != 0)
@@ -179,6 +184,7 @@ int	format_registry_set(
 				&& memcmp(entry->tag, tag, length) == 0)
 			{
 				entry->callback = callback;
+				entry->safe_callback = safe_callback;
 				return (0);
 			}
 			entry = entry->next;
@@ -212,6 +218,7 @@ int	format_registry_set(
 
 	entry->hash = hash;
 	entry->callback = callback;
+	entry->safe_callback = safe_callback;
 	entry->next = registry.buckets[hash % registry.bucket_count];
 	registry.buckets[hash % registry.bucket_count] = entry;
 	++registry.tag_count;
